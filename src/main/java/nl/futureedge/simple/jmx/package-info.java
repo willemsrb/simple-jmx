@@ -5,8 +5,8 @@
  * Usage:
  * 
  * <pre>
- * jmx:service:simple://&lt;host>:&lt;port>
+ * jmx:service:simple://&lt;host&gt;:&lt;port&gt;
  * </pre>
- * </p>
+ * 
  */
 package nl.futureedge.simple.jmx;

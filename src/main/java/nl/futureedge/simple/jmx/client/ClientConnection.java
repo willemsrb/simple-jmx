@@ -43,8 +43,8 @@ public final class ClientConnection {
 	/**
 	 * Constructor.
 	 * 
-	 * @param clientSocketFactory
-	 *            client socket factory
+	 * @param serviceUrl
+	 *            jmx service url
 	 * @param environment
 	 *            environment
 	 */

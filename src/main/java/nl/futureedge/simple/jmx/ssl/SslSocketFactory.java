@@ -45,9 +45,7 @@ public final class SslSocketFactory {
 
 	/**
 	 * Constructor.
-	 * 
-	 * @param serviceUrl
-	 *            jmx service url
+	 *
 	 * @throws SslConfigurationException
 	 *             if an error occurs when configuring the SSL
 	 */

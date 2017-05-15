@@ -40,8 +40,6 @@ public final class MessageInputStream {
 	 * @return a message
 	 * @throws IOException
 	 *             on I/O errros
-	 * @throws ClassNotFoundException
-	 *             when the message class could not be found
 	 */
 	public Message read() throws IOException {
 		synchronized (input) {
