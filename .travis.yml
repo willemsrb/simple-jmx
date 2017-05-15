@@ -17,7 +17,7 @@ addons:
   sonarqube: true
 
 script:
-  - openssl aes-256-cbc -K $GPG_PASSPHRASE -in codesigning.asc.enc -out codesigning.asc -d
+  - openssl aes-256-cbc -k $GPG_PASSPHRASE -in codesigning.asc.enc -out codesigning.asc -d
   - gpg --fast-import codesigning.asc
   - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONAR_TOKEN -Dsonar.organization=$SONAR_ORGANIZATION -Dgpg.passphrase=$GPG_PASSPHRASE
 
