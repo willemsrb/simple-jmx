@@ -16,8 +16,12 @@ jdk:
 addons:
   sonarqube: true
 
+secure: "UbnuGfwp33oKvoqyRfEdlQTIzCf9zwNRUhqG8Q1bdSFH+Dn9UNrdLVcT0Dbkua1OobCiUXvorVz7F0+KtoOrYC4VrmFFbOR2FVY4TA4uZVNZr1NJnXlh1y+LsaP6o/kyJQROuHHxTorKMBx499RC1ne5JZX2a5V9+XTYYjEllh3nFGfCXsHi7pX5bgeifncxFJj0H1+GmdE4zCpkc5BfEPcp2CD5feHHhRt6n2jdVigYH0fqNH3tAyhnMKwvP3BKjzsGBPw8arWNYXT2CZEwuxHuZSnvbVUud0QdYCnkNs7He51NAcbzxHsE4DMAqfacIFP9tgfz6BBkF4AWm+FA2fGTofnixeQkVLpRby3u5S7xSWBD85g6szN8aEegnHJ/d48TplMP+LZx/h964sba483iUbQvaO4n3iEZLUZR5Ivd6c3Eyll+1N7eHwxFlC062r8CLrjLvnpyNUXRVBoWz1PIITRZWkaWpTLGznFVQiOjjRY245OlEmj+df/gjudPmocrBgKgZZo454UFXzgGYVw+aH9Yw3YMSl76CzTNrKVM19MvMEWn15VJ4hbMfmgmSixc6x/AhHIUOkII2CK7yz9NItjHEOd7u7FoPKnUcuhB9Sv8KVPVSgyKqVsUjnXqHkozZFUAq4Loe6SUCgwpmoFmIuSzkuPLYsSJ44ezzZY="
+
 script:
-  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONAR_TOKEN -Dsonar.organization=$SONAR_ORGANIZATION
+  - openssl aes-256-cbc -K $encrypted_0ad20d180705_key -iv $encrypted_0ad20d180705_iv -in codesigning.asc.enc -out codesigning.asc -d
+  - gpg --fast-import codesigning.asc
+  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONAR_TOKEN -Dsonar.organization=$SONAR_ORGANIZATION -Dgpg.passphrase=$GPG_PASSPHRASE
 
 deploy:
   provider: releases
