@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="info" shutdownHook="disable">
-	<Appenders>
-		<Console name="Console" target="SYSTEM_OUT">
-			<PatternLayout
-				pattern="%d{HH:mm:ss.SSS} [%t] %-5level %marker %logger{36} - %msg%n" />
-		</Console>
-	</Appenders>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout
+                    pattern="%d{HH:mm:ss.SSS} [%t] %-5level %marker %logger{36} - %msg%n"/>
+        </Console>
+    </Appenders>
 
-	<Loggers>
-		<AsyncRoot level="WARN">
-			<AppenderRef ref="Console" />
-		</AsyncRoot>
+    <Loggers>
+        <AsyncRoot level="WARN">
+            <AppenderRef ref="Console"/>
+        </AsyncRoot>
 
-		<AsyncLogger name="nl.futureedge.simple.jmx" level="INFO" />
-	</Loggers>
+        <AsyncLogger name="nl.futureedge.simple.jmx" level="INFO"/>
+    </Loggers>
 </Configuration>

@@ -5,11 +5,11 @@ package nl.futureedge.simple.jmx.message;
  */
 public final class RequestLogoff extends Request {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	public String toString() {
-		return "RequestLogoff [requestId=" + getRequestId() + "]";
-	}
+    @Override
+    public String toString() {
+        return "RequestLogoff [requestId=" + getRequestId() + "]";
+    }
 
 }

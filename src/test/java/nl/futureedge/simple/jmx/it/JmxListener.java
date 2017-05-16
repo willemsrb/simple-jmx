@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
@@ -15,9 +14,8 @@ import javax.management.MBeanInfo;
 import javax.management.Notification;
 import javax.management.NotificationListener;
 import javax.management.ReflectionException;
-
 import org.springframework.jmx.export.annotation.ManagedResource;
- 
+
 @ManagedResource(objectName = "nl.futureedge.simple.jmx.test:name=LISTENER", description = "JMX Notification Listener for test.")
 public class JmxListener implements NotificationListener, DynamicMBean {
 
@@ -42,8 +40,7 @@ public class JmxListener implements NotificationListener, DynamicMBean {
 
     @Override
     public void setAttribute(final Attribute attribute)
-        throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException
-    {
+            throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
     }
 
     @Override

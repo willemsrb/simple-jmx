@@ -31,4 +31,11 @@ buildNumber.properties
 **/.classpath
 
 #
+# intellij
+#
+.idea
+*.iml
+
+#
+build.cmd
 sonar.cmd

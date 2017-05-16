@@ -6,20 +6,19 @@ import java.util.UUID;
  * Base request.
  */
 public class Request implements Message {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private final String requestId = UUID.randomUUID().toString();
+    private final String requestId = UUID.randomUUID().toString();
 
-	Request() {
-	}
+    Request() {
+    }
 
-	/**
-	 * Het unieke request id waarop de response gecorreleerd kan worden.
-	 * 
-	 * @return unieke request id.
-	 */
-	public final String getRequestId() {
-		return requestId;
-	}
+    /**
+     * Het unieke request id waarop de response gecorreleerd kan worden.
+     * @return unieke request id.
+     */
+    public final String getRequestId() {
+        return requestId;
+    }
 
 }
