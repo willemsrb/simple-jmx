@@ -180,8 +180,7 @@ final class ServerConnection implements Runnable {
     /**
      * Handle adding a notification listener.
      * @param request request
-     * @param listener listener
-     * @return antwoord response
+     * @return response
      */
     private Response handleAddNotificationListener(final RequestAddNotificationListener request) {
         final NotificationSender notificationSender = new NotificationSender(

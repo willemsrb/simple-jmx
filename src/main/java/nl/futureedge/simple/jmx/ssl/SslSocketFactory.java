@@ -62,10 +62,12 @@ public final class SslSocketFactory {
     }
 
     private KeyManager[] configureKeyManager() {
+        // TODO: Configure certificates
         return new KeyManager[]{};
     }
 
     private TrustManager[] configureTrustManagers() {
+        // TODO: Configure certificates
         return new TrustManager[]{};
     }
 

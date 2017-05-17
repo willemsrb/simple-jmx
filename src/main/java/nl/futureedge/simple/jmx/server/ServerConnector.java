@@ -32,7 +32,7 @@ final class ServerConnector extends JMXConnectorServer {
     ServerConnector(JMXServiceURL url, Map<String, ?> environment, MBeanServer server) {
         super(server);
         this.url = url;
-        this.environment = new HashMap<>(environment);
+        this.environment = environment == null ? new HashMap<>() : new HashMap<>(environment);
     }
 
     @Override
