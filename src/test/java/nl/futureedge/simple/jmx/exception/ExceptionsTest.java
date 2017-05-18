@@ -13,4 +13,9 @@ public class ExceptionsTest {
     public void notLoggedOn() throws NotLoggedOnException {
         throw new NotLoggedOnException();
     }
+
+    @Test(expected = UnknownRequestException.class)
+    public void unknownRequest() throws UnknownRequestException {
+        throw new UnknownRequestException();
+    }
 }

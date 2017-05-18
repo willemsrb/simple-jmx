@@ -74,6 +74,7 @@ final class ServerListener implements Runnable {
         executorService.shutdownNow();
     }
 
+
     private String createConnectionId() {
         return serverId + "-" + serverConnectionId.getAndIncrement();
     }
@@ -81,6 +82,10 @@ final class ServerListener implements Runnable {
     public void stop() {
         stop = true;
         IOUtils.closeSilently(serverSocket);
+    }
+
+    public boolean isStopped() {
+        return stop;
     }
 
     /**
@@ -104,13 +109,12 @@ final class ServerListener implements Runnable {
 
         @Override
         public Thread newThread(final Runnable r) {
-            final Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
-            if (t.isDaemon()) {
-                t.setDaemon(false);
-            }
-            if (t.getPriority() != Thread.NORM_PRIORITY) {
-                t.setPriority(Thread.NORM_PRIORITY);
-            }
+            final Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement());
+            // Never create deamon threads
+            t.setDaemon(false);
+            // Create lower than normal priority threads
+            t.setPriority((Thread.NORM_PRIORITY + Thread.MIN_PRIORITY) / 2);
+
             return t;
         }
 

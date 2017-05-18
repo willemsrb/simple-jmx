@@ -17,6 +17,8 @@ import javax.management.ObjectName;
 import javax.management.OperationsException;
 import nl.futureedge.simple.jmx.exception.InvalidCredentialsException;
 import nl.futureedge.simple.jmx.exception.NotLoggedOnException;
+import nl.futureedge.simple.jmx.exception.UnknownRequestException;
+import nl.futureedge.simple.jmx.message.Message;
 import nl.futureedge.simple.jmx.message.Notification;
 import nl.futureedge.simple.jmx.message.Request;
 import nl.futureedge.simple.jmx.message.RequestAddNotificationListener;
@@ -67,17 +69,21 @@ final class ServerConnection implements Runnable {
         while (!stop) {
             try {
                 // Receive request
-                final Request request = (Request) input.read();
+                final Message message = input.read();
 
-                // Handle request
-                final Response response = handleRequest(request);
+                if(message instanceof Request) {
+                    // Handle request
+                    final Response response = handleRequest((Request)message);
 
-                // Send response
-                output.write(response);
+                    // Send response
+                    output.write(response);
+                } else {
+                    LOGGER.log(Level.WARNING, "Received unknown message type: {0}", message.getClass().getName());
+                }
             } catch (EOFException e) {
                 LOGGER.log(Level.FINE, "Client closed connection.", e);
                 stop = true;
-            } catch (ClassCastException | IOException e) {
+            } catch (IOException e) {
                 LOGGER.log(Level.WARNING, "Unexpected exception.", e);
                 stop = true;
             }
@@ -97,6 +103,10 @@ final class ServerConnection implements Runnable {
         // Shutdown
         IOUtils.closeSilently(socket);
         LOGGER.log(Level.FINE, "Server connection closed.");
+    }
+
+    public boolean isStopped() {
+        return stop;
     }
 
     private Response handleRequest(final Request request) {
@@ -126,7 +136,7 @@ final class ServerConnection implements Runnable {
                     LOGGER.log(Level.FINE, "Add notification response: {0}", response);
                 } else {
                     LOGGER.log(Level.WARNING, "Received unknown request type: {0}", request.getClass().getName());
-                    throw new IllegalStateException("Request type unknown: " + request.getClass().getName());
+                    response = new Response(request.getRequestId(), new UnknownRequestException());
                 }
             }
         }
@@ -170,7 +180,7 @@ final class ServerConnection implements Runnable {
             } else {
                 response = new Response(request.getRequestId(), e);
             }
-        } catch (final ClassCastException | ReflectiveOperationException e) {
+        } catch (final ReflectiveOperationException e) {
             response = new Response(request.getRequestId(), e);
         }
 
@@ -184,7 +194,7 @@ final class ServerConnection implements Runnable {
      */
     private Response handleAddNotificationListener(final RequestAddNotificationListener request) {
         final NotificationSender notificationSender = new NotificationSender(
-                ((RequestAddNotificationListener) request).getNotificationListenerId(), request.getName());
+                request.getNotificationListenerId(), request.getName());
 
         try {
             mBeanServer.addNotificationListener(request.getName(), notificationSender, request.getFilter(), null);

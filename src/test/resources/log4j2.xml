@@ -12,6 +12,6 @@
             <AppenderRef ref="Console"/>
         </AsyncRoot>
 
-        <AsyncLogger name="nl.futureedge.simple.jmx" level="INFO"/>
+        <AsyncLogger name="nl.futureedge.simple.jmx" level="TRACE"/>
     </Loggers>
 </Configuration>
