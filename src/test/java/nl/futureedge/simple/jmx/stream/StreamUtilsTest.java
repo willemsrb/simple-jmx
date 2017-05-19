@@ -38,7 +38,7 @@ public class StreamUtilsTest {
 
     @Test
     public void testMessage() throws IOException, ReflectiveOperationException {
-        testMessage(new RequestLogon(new String[]{"username", "password"}));
+        testMessage(new RequestLogon("credentialsObject"));
     }
 
     private void testMessage(final Message message) throws IOException, ReflectiveOperationException {
@@ -55,14 +55,7 @@ public class StreamUtilsTest {
 
             final Object expectedFieldValue = field.get(expected);
             final Object actualFieldValue = field.get(actual);
-            if (expectedFieldValue.getClass().isArray()) {
-                final Object[] expectedArray = (Object[]) expectedFieldValue;
-                final Object[] actualArray = (Object[]) actualFieldValue;
-
-                Assert.assertArrayEquals("Array field '" + field.getName() + "' not equal", expectedArray, actualArray);
-            } else {
-                Assert.assertEquals("Field '" + field.getName() + "' not equal", expectedFieldValue, actualFieldValue);
-            }
+            Assert.assertEquals("Field '" + field.getName() + "' not equal", expectedFieldValue, actualFieldValue);
         }
     }
 
