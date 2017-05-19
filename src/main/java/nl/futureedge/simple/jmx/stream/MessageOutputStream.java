@@ -27,7 +27,7 @@ public final class MessageOutputStream {
      * @throws IOException on I/O errors
      */
     public MessageOutputStream(final OutputStream base) throws IOException {
-        this.output = new BufferedOutputStream(base);
+        output = new BufferedOutputStream(base);
         output.flush();
     }
 

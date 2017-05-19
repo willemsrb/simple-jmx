@@ -108,9 +108,13 @@ final class ClientConnector implements JMXConnector {
         return FACTORY.createConnection(clientConnection);
     }
 
-    void sendConnectionNotification(String type, String connectionId) {
-        final JMXConnectionNotification notification = new JMXConnectionNotification(type, "", connectionId, NOTIFICATION_SEQUENCE.getAndIncrement(), null, null);
-        notificationBroadcaster.sendNotification(notification);
+    /**
+     * Send a connection notification to registered connection notification listeners.
+     * @param type notification type
+     * @param connectionId connection id
+     */
+    void sendConnectionNotification(final String type, final String connectionId) {
+        notificationBroadcaster.sendNotification(new JMXConnectionNotification(type, "", connectionId, NOTIFICATION_SEQUENCE.getAndIncrement(), null, null));
     }
 
     @Override

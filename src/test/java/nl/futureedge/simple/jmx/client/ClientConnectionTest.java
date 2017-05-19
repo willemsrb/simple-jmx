@@ -8,7 +8,6 @@ public class ClientConnectionTest {
     @Before
     public void setup() {
 
-
     }
 
     @Test

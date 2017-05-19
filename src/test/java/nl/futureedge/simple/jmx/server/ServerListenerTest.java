@@ -37,7 +37,7 @@ public class ServerListenerTest {
     public void setup() throws IOException {
         mBeanServer = Mockito.mock(MBeanServer.class);
         serverConnector = new ServerConnector(new JMXServiceURL("simple", "localhost", 0), null, mBeanServer);
-        subject = new ServerListener(serverConnector);
+        subject = new ServerListener(serverConnector, null);
     }
 
     private void start() {
@@ -60,11 +60,11 @@ public class ServerListenerTest {
 
         start();
 
-        SSLSocket client = (SSLSocket) new SslSocketFactory().createSocket(serverConnector.getAddress());
+        final SSLSocket client = (SSLSocket) new SslSocketFactory().createSocket(serverConnector.getAddress());
         client.startHandshake();
         Assert.assertTrue(client.isConnected());
-        OutputStream clientOutput = client.getOutputStream();
-        InputStream clientInput = client.getInputStream();
+        final OutputStream clientOutput = client.getOutputStream();
+        final InputStream clientInput = client.getInputStream();
         client.close();
         Assert.assertFalse(subject.isStopped());
 
@@ -76,9 +76,9 @@ public class ServerListenerTest {
 
     @Test
     public void testUnexpectedSocketException() throws ReflectiveOperationException, IOException, InterruptedException {
-        ServerSocket mockSocket = Mockito.mock(ServerSocket.class);
+        final ServerSocket mockSocket = Mockito.mock(ServerSocket.class);
 
-        Field socketField = ServerListener.class.getDeclaredField("serverSocket");
+        final Field socketField = ServerListener.class.getDeclaredField("serverSocket");
         socketField.setAccessible(true);
         socketField.set(subject, mockSocket);
 
@@ -103,9 +103,9 @@ public class ServerListenerTest {
 
     @Test
     public void testUnexpectedIOException() throws ReflectiveOperationException, IOException, InterruptedException {
-        ServerSocket mockSocket = Mockito.mock(ServerSocket.class);
+        final ServerSocket mockSocket = Mockito.mock(ServerSocket.class);
 
-        Field socketField = ServerListener.class.getDeclaredField("serverSocket");
+        final Field socketField = ServerListener.class.getDeclaredField("serverSocket");
         socketField.setAccessible(true);
         socketField.set(subject, mockSocket);
 

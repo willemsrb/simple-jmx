@@ -8,8 +8,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.management.MBeanServer;
+import javax.management.remote.JMXAuthenticator;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXServiceURL;
+import nl.futureedge.simple.jmx.authenticator.DefaultAuthenticator;
 
 /**
  * Server connector.
@@ -29,7 +31,7 @@ final class ServerConnector extends JMXConnectorServer {
      * @param environment jmx environment
      * @param server mbean server
      */
-    ServerConnector(JMXServiceURL url, Map<String, ?> environment, MBeanServer server) {
+    ServerConnector(final JMXServiceURL url, final Map<String, ?> environment, final MBeanServer server) {
         super(server);
         this.url = url;
         this.environment = environment == null ? new HashMap<>() : new HashMap<>(environment);
@@ -40,10 +42,10 @@ final class ServerConnector extends JMXConnectorServer {
         return url;
     }
 
-    void updateAddress(int localPort) {
+    void updateAddress(final int localPort) {
         try {
             url = new JMXServiceURL(url.getProtocol(), url.getHost(), localPort);
-        } catch (MalformedURLException e) {
+        } catch (final MalformedURLException e) {
             LOGGER.log(Level.INFO, "Could not update url in JMXConnectorServer to reflect bound port", e);
         }
     }
@@ -64,9 +66,14 @@ final class ServerConnector extends JMXConnectorServer {
             return;
         }
 
-        serverListener = new ServerListener(this);
+        serverListener = new ServerListener(this, determineAuthenticator(environment));
         serverListenerThread = new Thread(serverListener, "simple-jmx-server-" + serverListener.getServerId());
         serverListenerThread.start();
+    }
+
+    private JMXAuthenticator determineAuthenticator(final Map<String, ?> environment) {
+        final JMXAuthenticator custom = (JMXAuthenticator) environment.get(JMXConnectorServer.AUTHENTICATOR);
+        return custom != null ? custom : new DefaultAuthenticator();
     }
 
     @Override

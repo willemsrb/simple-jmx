@@ -13,19 +13,19 @@ public class MessageStreamTest {
 
     @Test
     public void test() throws IOException {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        MessageOutputStream output = new MessageOutputStream(buffer);
-        output.write(new RequestLogon("user", "pass"));
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        final MessageOutputStream output = new MessageOutputStream(buffer);
+        output.write(new RequestLogon(new String[]{"user", "pass"}));
         output.write(new RequestLogoff());
         buffer.close();
 
-        MessageInputStream input = new MessageInputStream(new ByteArrayInputStream(buffer.toByteArray()));
-        RequestLogon logon = (RequestLogon)input.read();
-        RequestLogoff logoff = (RequestLogoff)input.read();
+        final MessageInputStream input = new MessageInputStream(new ByteArrayInputStream(buffer.toByteArray()));
+        final RequestLogon logon = (RequestLogon) input.read();
+        final RequestLogoff logoff = (RequestLogoff) input.read();
         try {
             input.read();
             Assert.fail("Exception expected");
-        } catch(EOFException e) {
+        } catch (final EOFException e) {
             // Expected
         }
     }

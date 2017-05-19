@@ -29,7 +29,7 @@ public class IOUtilsTest {
         try {
             constructor.newInstance();
             Assert.fail("Constructor should fail");
-        } catch (InvocationTargetException e) {
+        } catch (final InvocationTargetException e) {
             Assert.assertEquals(IllegalStateException.class, e.getCause().getClass());
         }
     }

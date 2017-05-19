@@ -15,6 +15,8 @@ import javax.management.MBeanServer;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
 import javax.management.OperationsException;
+import javax.management.remote.JMXAuthenticator;
+import javax.security.auth.Subject;
 import nl.futureedge.simple.jmx.exception.InvalidCredentialsException;
 import nl.futureedge.simple.jmx.exception.NotLoggedOnException;
 import nl.futureedge.simple.jmx.exception.UnknownRequestException;
@@ -39,27 +41,34 @@ final class ServerConnection implements Runnable {
 
     private final Socket socket;
     private final String connectionId;
+    private final JMXAuthenticator authenticator;
+
     private final MessageInputStream input;
     private final MessageOutputStream output;
 
     private final MBeanServer mBeanServer;
     private final List<NotificationSender> notificationSenders = new ArrayList<>();
 
-    private boolean authenticated = false;
+    private Subject subject;
     private boolean stop = false;
 
     /**
      * Constructor.
      * @param socket server socket to communicate via
+     * @param connectionId connection id for this connection
+     * @param authenticator authenticator
+     * @param mBeanServer mbean server
      */
-    ServerConnection(final Socket socket, final String connectionId, final MBeanServer mBeanServer) throws IOException {
+    ServerConnection(final Socket socket, final String connectionId, final JMXAuthenticator authenticator,
+                     final MBeanServer mBeanServer) throws IOException {
         this.socket = socket;
         this.connectionId = connectionId;
+        this.authenticator = authenticator;
 
         // The socket InputStream and OutputStream are not closed directly. They
         // are closed via method calls on the socket itself.
-        this.input = new MessageInputStream(socket.getInputStream());
-        this.output = new MessageOutputStream(socket.getOutputStream());
+        input = new MessageInputStream(socket.getInputStream());
+        output = new MessageOutputStream(socket.getOutputStream());
 
         this.mBeanServer = mBeanServer;
     }
@@ -71,19 +80,19 @@ final class ServerConnection implements Runnable {
                 // Receive request
                 final Message message = input.read();
 
-                if(message instanceof Request) {
+                if (message instanceof Request) {
                     // Handle request
-                    final Response response = handleRequest((Request)message);
+                    final Response response = handleRequest((Request) message);
 
                     // Send response
                     output.write(response);
                 } else {
                     LOGGER.log(Level.WARNING, "Received unknown message type: {0}", message.getClass().getName());
                 }
-            } catch (EOFException e) {
+            } catch (final EOFException e) {
                 LOGGER.log(Level.FINE, "Client closed connection.", e);
                 stop = true;
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 LOGGER.log(Level.WARNING, "Unexpected exception.", e);
                 stop = true;
             }
@@ -114,8 +123,7 @@ final class ServerConnection implements Runnable {
         if (request instanceof RequestLogon) {
             LOGGER.log(Level.FINE, "Handling logon request");
             response = handleLogon((RequestLogon) request);
-            authenticated = response.getException() == null;
-            LOGGER.log(Level.FINE, "Logged on: {0}", authenticated);
+            LOGGER.log(Level.FINE, "Logged on: {0}", subject);
         } else if (request instanceof RequestLogoff) {
             LOGGER.log(Level.FINE, "Handling logoff request");
             response = new Response(request.getRequestId(), null);
@@ -123,7 +131,7 @@ final class ServerConnection implements Runnable {
             LOGGER.log(Level.FINE, "Logged off");
         } else {
             // Check logged on
-            if (!authenticated) {
+            if (subject == null) {
                 response = new Response(request.getRequestId(), new NotLoggedOnException());
             } else {
                 if (request instanceof RequestExecute) {
@@ -150,15 +158,11 @@ final class ServerConnection implements Runnable {
      * @return response
      */
     private Response handleLogon(final RequestLogon request) {
-        // TODO: Add authenticater service
-        String username = request.getUsername();
-        String password = request.getPassword();
-
-        boolean checkCredentials = "admin".equals(username) && "admin".equals(password);
-        if (checkCredentials) {
+        try {
+            subject = authenticator.authenticate(request.getCredentials());
             return new Response(request.getRequestId(), connectionId);
-        } else {
-            LOGGER.log(Level.WARNING, "Invalid logon attempt for user '" + request.getUsername() + "'");
+        } catch (final SecurityException e) {
+            LOGGER.log(Level.WARNING, "Invalid logon attempt.", e);
             return new Response(request.getRequestId(), new InvalidCredentialsException());
         }
     }
@@ -170,6 +174,7 @@ final class ServerConnection implements Runnable {
      */
     private Response handleExecute(final RequestExecute request) {
         Response response = null;
+
         try {
             final Method method = MBeanServer.class.getMethod(request.getMethodName(), request.getParameterClasses());
             final Object result = method.invoke(mBeanServer, request.getParameterValues());
@@ -193,9 +198,8 @@ final class ServerConnection implements Runnable {
      * @return response
      */
     private Response handleAddNotificationListener(final RequestAddNotificationListener request) {
-        final NotificationSender notificationSender = new NotificationSender(
-                request.getNotificationListenerId(), request.getName());
-
+        final NotificationSender notificationSender = new NotificationSender(request.getNotificationListenerId(),
+                request.getName());
         try {
             mBeanServer.addNotificationListener(request.getName(), notificationSender, request.getFilter(), null);
             notificationSenders.add(notificationSender);

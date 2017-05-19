@@ -16,6 +16,7 @@ import javax.management.ListenerNotFoundException;
 import javax.management.MBeanServer;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
+import nl.futureedge.simple.jmx.authenticator.TestAuthenticator;
 import nl.futureedge.simple.jmx.exception.InvalidCredentialsException;
 import nl.futureedge.simple.jmx.exception.NotLoggedOnException;
 import nl.futureedge.simple.jmx.exception.UnknownRequestException;
@@ -32,6 +33,7 @@ import nl.futureedge.simple.jmx.stream.MessageInputStream;
 import nl.futureedge.simple.jmx.stream.MessageOutputStream;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
@@ -50,17 +52,17 @@ public class ServerConnectionTest {
 
     private ServerConnection subject;
 
-    private void setup(Message... messages) throws IOException {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        MessageOutputStream mos = new MessageOutputStream(buffer);
-        for (Message message : messages) {
+    private void setup(final Message... messages) throws IOException {
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        final MessageOutputStream mos = new MessageOutputStream(buffer);
+        for (final Message message : messages) {
             mos.write(message);
         }
 
         setup(new ByteArrayInputStream(buffer.toByteArray()));
     }
 
-    private void setup(InputStream inputStream) throws IOException {
+    private void setup(final InputStream inputStream) throws IOException {
         outputStream = new ByteArrayOutputStream();
 
         socket = Mockito.mock(Socket.class);
@@ -68,7 +70,7 @@ public class ServerConnectionTest {
         Mockito.when(socket.getOutputStream()).thenReturn(outputStream);
         mBeanServer = Mockito.mock(MBeanServer.class);
 
-        subject = new ServerConnection(socket, "connectionId", mBeanServer);
+        subject = new ServerConnection(socket, "connectionId", new TestAuthenticator(), mBeanServer);
     }
 
     @Test
@@ -78,30 +80,30 @@ public class ServerConnectionTest {
         final ObjectName objectName3 = new ObjectName("test:name=TEST3");
 
         // Requests
-        RequestExecute unauthenticated = new RequestExecute("getAttribute", new Class[]{ObjectName.class, String.class},
+        final RequestExecute unauthenticated = new RequestExecute("getAttribute", new Class[]{ObjectName.class, String.class},
                 new Object[]{null, null});
-        RequestLogon invalidCredentials = new RequestLogon("unknown", "unknown");
-        RequestLogon logon = new RequestLogon("admin", "admin");
-        RequestExecute execute = new RequestExecute("getAttribute", new Class[]{ObjectName.class, String.class},
+        final RequestLogon invalidCredentials = new RequestLogon(new String[]{"unknown", "unknown"});
+        final RequestLogon logon = new RequestLogon(new String[]{"admin", "admin"});
+        final RequestExecute execute = new RequestExecute("getAttribute", new Class[]{ObjectName.class, String.class},
                 new Object[]{objectName, "executeOk"});
-        RequestExecute executeIEWithCause = new RequestExecute("getAttribute", new Class[]{ObjectName.class, String.class},
+        final RequestExecute executeIEWithCause = new RequestExecute("getAttribute", new Class[]{ObjectName.class, String.class},
                 new Object[]{objectName, "executeIEWithCause"});
-//        RequestExecute executeIEWithoutCause = new RequestExecute("getAttribute", new Class[]{ObjectName.class, String.class},
-//                new Object[]{objectName, "executeIEWithoutCause"});
-        RequestExecute executeROE = new RequestExecute("getAttribute", new Class[]{ObjectName.class, Integer.class},
+        //        RequestExecute executeIEWithoutCause = new RequestExecute("getAttribute", new Class[]{ObjectName.class, String.class},
+        //                new Object[]{objectName, "executeIEWithoutCause"});
+        final RequestExecute executeROE = new RequestExecute("getAttribute", new Class[]{ObjectName.class, Integer.class},
                 new Object[]{null, null});
 
-        RequestAddNotificationListener addListener = new RequestAddNotificationListener("id-001", objectName, null);
-        RequestAddNotificationListener addListener2 = new RequestAddNotificationListener("id-002", objectName2, null);
-        RequestAddNotificationListener addListenerOE = new RequestAddNotificationListener("id-003", objectName3, null);
+        final RequestAddNotificationListener addListener = new RequestAddNotificationListener("id-001", objectName, null);
+        final RequestAddNotificationListener addListener2 = new RequestAddNotificationListener("id-002", objectName2, null);
+        final RequestAddNotificationListener addListenerOE = new RequestAddNotificationListener("id-003", objectName3, null);
 
-        RequestExecute triggerNotification = new RequestExecute("getAttribute", new Class[]{ObjectName.class, String.class},
+        final RequestExecute triggerNotification = new RequestExecute("getAttribute", new Class[]{ObjectName.class, String.class},
                 new Object[]{objectName, "triggerNotification"});
 
-        Request unknownRequest = new UnknownRequest();
-        Response unknownMessage = new Response("some-id", null);
+        final Request unknownRequest = new UnknownRequest();
+        final Response unknownMessage = new Response("some-id", null);
 
-        RequestLogoff logoff = new RequestLogoff();
+        final RequestLogoff logoff = new RequestLogoff();
 
         // Setup
         setup(unauthenticated, invalidCredentials, logon, execute, executeIEWithCause, executeROE, addListener, addListener2, addListenerOE,
@@ -116,13 +118,17 @@ public class ServerConnectionTest {
                     listeners.add(invocation.getArgument(1));
                     return null;
                 }
-        ).when(mBeanServer).addNotificationListener(Mockito.eq(objectName), Mockito.any(NotificationListener.class), Mockito.isNull(), Mockito.isNull());
+        ).when(mBeanServer)
+                .addNotificationListener(ArgumentMatchers.eq(objectName), ArgumentMatchers.any(NotificationListener.class), ArgumentMatchers.isNull(),
+                        ArgumentMatchers.isNull());
 
         Mockito.doThrow(new ListenerNotFoundException()
-        ).when(mBeanServer).removeNotificationListener(Mockito.eq(objectName2), Mockito.any(NotificationListener.class));
+        ).when(mBeanServer).removeNotificationListener(ArgumentMatchers.eq(objectName2), ArgumentMatchers.any(NotificationListener.class));
 
         Mockito.doThrow(new InstanceNotFoundException()
-        ).when(mBeanServer).addNotificationListener(Mockito.eq(objectName3), Mockito.any(NotificationListener.class), Mockito.isNull(), Mockito.isNull());
+        ).when(mBeanServer)
+                .addNotificationListener(ArgumentMatchers.eq(objectName3), ArgumentMatchers.any(NotificationListener.class), ArgumentMatchers.isNull(),
+                        ArgumentMatchers.isNull());
 
         Mockito.when(mBeanServer.getAttribute(objectName, "triggerNotification")).then(
                 invocation -> {
@@ -140,62 +146,62 @@ public class ServerConnectionTest {
         listeners.get(0).handleNotification(new javax.management.Notification("type", "source", 2L), null);
 
         // Verify
-        List<Message> messages = readResponses();
+        final List<Message> messages = readResponses();
 
-        Response unauthenticatedResponse = (Response) messages.get(0);
+        final Response unauthenticatedResponse = (Response) messages.get(0);
         Assert.assertEquals(unauthenticated.getRequestId(), unauthenticatedResponse.getRequestId());
         Assert.assertEquals(NotLoggedOnException.class, unauthenticatedResponse.getException().getClass());
 
-        Response invalidCredentialsResponse = (Response) messages.get(1);
+        final Response invalidCredentialsResponse = (Response) messages.get(1);
         Assert.assertEquals(invalidCredentials.getRequestId(), invalidCredentialsResponse.getRequestId());
         Assert.assertEquals(InvalidCredentialsException.class, invalidCredentialsResponse.getException().getClass());
 
-        Response logonResponse = (Response) messages.get(2);
+        final Response logonResponse = (Response) messages.get(2);
         Assert.assertEquals(logon.getRequestId(), logonResponse.getRequestId());
         Assert.assertNull(logonResponse.getException());
         Assert.assertEquals("connectionId", logonResponse.getResult());
 
-        Response executeResponse = (Response) messages.get(3);
+        final Response executeResponse = (Response) messages.get(3);
         Assert.assertEquals(execute.getRequestId(), executeResponse.getRequestId());
         Assert.assertNull(executeResponse.getException());
         Assert.assertEquals(Integer.valueOf(42), executeResponse.getResult());
 
-        Response executeIEWithCauseResponse = (Response) messages.get(4);
+        final Response executeIEWithCauseResponse = (Response) messages.get(4);
         Assert.assertEquals(executeIEWithCause.getRequestId(), executeIEWithCauseResponse.getRequestId());
         Assert.assertEquals(IllegalArgumentException.class, executeIEWithCauseResponse.getException().getClass());
 
-//        Response executeIEWithoutCauseResponse = (Response) messages.get(5);
-//        Assert.assertEquals(executeIEWithoutCause.getRequestId(), executeIEWithoutCauseResponse.getRequestId());
-//        Assert.assertEquals(InvocationTargetException.class, executeIEWithoutCauseResponse.getException().getClass());
-//
-        Response executeROEResponse = (Response) messages.get(5);
+        //        Response executeIEWithoutCauseResponse = (Response) messages.get(5);
+        //        Assert.assertEquals(executeIEWithoutCause.getRequestId(), executeIEWithoutCauseResponse.getRequestId());
+        //        Assert.assertEquals(InvocationTargetException.class, executeIEWithoutCauseResponse.getException().getClass());
+        //
+        final Response executeROEResponse = (Response) messages.get(5);
         Assert.assertEquals(executeROE.getRequestId(), executeROEResponse.getRequestId());
         Assert.assertEquals(NoSuchMethodException.class, executeROEResponse.getException().getClass());
 
-        Response addListenerResponse = (Response) messages.get(6);
+        final Response addListenerResponse = (Response) messages.get(6);
         Assert.assertEquals(addListener.getRequestId(), addListenerResponse.getRequestId());
         Assert.assertNull(addListenerResponse.getException());
 
-        Response addListener2Response = (Response) messages.get(7);
+        final Response addListener2Response = (Response) messages.get(7);
         Assert.assertEquals(addListener2.getRequestId(), addListener2Response.getRequestId());
         Assert.assertNull(addListener2Response.getException());
 
-        Response addListenerOEResponse = (Response) messages.get(8);
+        final Response addListenerOEResponse = (Response) messages.get(8);
         Assert.assertEquals(addListenerOE.getRequestId(), addListenerOEResponse.getRequestId());
         Assert.assertEquals(InstanceNotFoundException.class, addListenerOEResponse.getException().getClass());
 
-        Notification triggeredNotification = (Notification) messages.get(9);
+        final Notification triggeredNotification = (Notification) messages.get(9);
         Assert.assertEquals(1L, triggeredNotification.getNotification().getSequenceNumber());
 
-        Response triggerNotificationResponse = (Response) messages.get(10);
+        final Response triggerNotificationResponse = (Response) messages.get(10);
         Assert.assertEquals(triggerNotification.getRequestId(), triggerNotificationResponse.getRequestId());
         Assert.assertNull(triggerNotificationResponse.getException());
 
-        Response unknownRequestResponse = (Response) messages.get(11);
+        final Response unknownRequestResponse = (Response) messages.get(11);
         Assert.assertEquals(unknownRequest.getRequestId(), unknownRequestResponse.getRequestId());
         Assert.assertEquals(UnknownRequestException.class, unknownRequestResponse.getException().getClass());
 
-        Response logoffResponse = (Response) messages.get(12);
+        final Response logoffResponse = (Response) messages.get(12);
         Assert.assertEquals(logoff.getRequestId(), logoffResponse.getRequestId());
 
         // Check no more messages
@@ -212,7 +218,7 @@ public class ServerConnectionTest {
 
     @Test
     public void testClientDropsConnectionDuringLength() throws IOException, JMException {
-        byte[] buffer = new byte[]{0, 0, };
+        final byte[] buffer = new byte[]{0, 0,};
         setup(new ByteArrayInputStream(buffer));
 
         Assert.assertFalse(subject.isStopped());
@@ -223,7 +229,7 @@ public class ServerConnectionTest {
 
     @Test
     public void testClientDropsConnectionDuringData() throws IOException, JMException {
-        byte[] buffer = new byte[]{0, 0, 0, 4, 3, 3 };
+        final byte[] buffer = new byte[]{0, 0, 0, 4, 3, 3};
         setup(new ByteArrayInputStream(buffer));
 
         Assert.assertFalse(subject.isStopped());
@@ -235,7 +241,7 @@ public class ServerConnectionTest {
     @Test
     public void testClientSendsGarbage() throws IOException, JMException {
         // 4 bytes length, 4 bytes garbage, 1 byte padding
-        byte[] buffer = new byte[]{0, 0, 0, 4, 3, 3, 3, 3, 3};
+        final byte[] buffer = new byte[]{0, 0, 0, 4, 3, 3, 3, 3, 3};
         setup(new ByteArrayInputStream(buffer));
 
         Assert.assertFalse(subject.isStopped());
@@ -247,9 +253,9 @@ public class ServerConnectionTest {
     public void testServerNotificationFailure() throws IOException, JMException {
         final ObjectName objectName = new ObjectName("test:name=TEST");
 
-        RequestLogon logon = new RequestLogon("admin", "admin");
-        RequestAddNotificationListener addListener = new RequestAddNotificationListener("id-001", objectName, null);
-        RequestExecute triggerNotification = new RequestExecute("getAttribute", new Class[]{ObjectName.class, String.class},
+        final RequestLogon logon = new RequestLogon(new String[]{"admin", "admin"});
+        final RequestAddNotificationListener addListener = new RequestAddNotificationListener("id-001", objectName, null);
+        final RequestExecute triggerNotification = new RequestExecute("getAttribute", new Class[]{ObjectName.class, String.class},
                 new Object[]{objectName, "triggerNotification"});
 
         setup(logon, addListener, triggerNotification);
@@ -259,7 +265,9 @@ public class ServerConnectionTest {
                     listeners.add(invocation.getArgument(1));
                     return null;
                 }
-        ).when(mBeanServer).addNotificationListener(Mockito.eq(objectName), Mockito.any(NotificationListener.class), Mockito.isNull(), Mockito.isNull());
+        ).when(mBeanServer)
+                .addNotificationListener(ArgumentMatchers.eq(objectName), ArgumentMatchers.any(NotificationListener.class), ArgumentMatchers.isNull(),
+                        ArgumentMatchers.isNull());
 
         Mockito.when(mBeanServer.getAttribute(objectName, "triggerNotification")).then(
                 invocation -> {
@@ -274,14 +282,14 @@ public class ServerConnectionTest {
     }
 
     private List<Message> readResponses() throws IOException {
-        MessageInputStream inputStream = new MessageInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
+        final MessageInputStream inputStream = new MessageInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
 
-        List<Message> result = new ArrayList<>();
+        final List<Message> result = new ArrayList<>();
         try {
             while (true) {
                 result.add(inputStream.read());
             }
-        } catch (EOFException e) {
+        } catch (final EOFException e) {
             // Expected
         }
         return result;

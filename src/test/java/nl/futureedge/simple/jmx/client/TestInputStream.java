@@ -18,18 +18,18 @@ public class TestInputStream extends InputStream {
     private int currentDataIndex = 0;
     private volatile boolean done = false;
 
-    public void registerMessage(Message message) {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    public void registerMessage(final Message message) {
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         try {
-            MessageOutputStream output = new MessageOutputStream(buffer);
+            final MessageOutputStream output = new MessageOutputStream(buffer);
             output.write(message);
-        } catch(IOException e) {
+        } catch (final IOException e) {
             throw new IllegalArgumentException("Could not write message", e);
         }
         registerData(buffer.toByteArray());
     }
 
-    public void registerData(byte[] data) {
+    public void registerData(final byte[] data) {
         synchronized (readLock) {
             if (done) {
                 throw new IllegalStateException("TestInputStream cannot accepted more data as done() was called");
@@ -60,7 +60,7 @@ public class TestInputStream extends InputStream {
                 if (registeredData.isEmpty()) {
                     try {
                         readLock.wait();
-                    } catch(InterruptedException e) {
+                    } catch (final InterruptedException e) {
                         throw new InterruptedIOException();
                     }
                 } else {

@@ -190,14 +190,14 @@ public class SimpleJmxIT {
                 try {
                     jmxc.getConnectionId();
                     Assert.fail("IOException (not connected) expected");
-                } catch(IOException e) {
+                } catch (final IOException e) {
                     // Expected
                 }
 
                 try {
                     jmxc.getMBeanServerConnection();
                     Assert.fail("IOException (not connected) expected");
-                } catch(IOException e) {
+                } catch (final IOException e) {
                     // Expected
                 }
 
@@ -225,9 +225,11 @@ public class SimpleJmxIT {
             final Map<String, Object> environment = new HashMap<>();
             environment.put(JMXConnector.CREDENTIALS, new String[]{"admin", "admin"});
 
-            Counter counter = new Counter();
-            try (final JMXConnector jmxc1 = JMXConnectorFactory.newJMXConnector(new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment);
-                final JMXConnector jmxc2 = JMXConnectorFactory.newJMXConnector(new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment)) {
+            final Counter counter = new Counter();
+            try (final JMXConnector jmxc1 = JMXConnectorFactory
+                    .newJMXConnector(new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment);
+                 final JMXConnector jmxc2 = JMXConnectorFactory
+                         .newJMXConnector(new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment)) {
                 jmxc1.addConnectionNotificationListener(counter, null, null);
                 jmxc2.addConnectionNotificationListener(counter, null, null);
 
@@ -271,10 +273,10 @@ public class SimpleJmxIT {
         int closed = 0;
 
         @Override
-        public void handleNotification(Notification notification, Object handback) {
-            if(JMXConnectionNotification.OPENED.equals(notification.getType())) {
+        public void handleNotification(final Notification notification, final Object handback) {
+            if (JMXConnectionNotification.OPENED.equals(notification.getType())) {
                 opened++;
-            } else if(JMXConnectionNotification.CLOSED.equals(notification.getType())) {
+            } else if (JMXConnectionNotification.CLOSED.equals(notification.getType())) {
                 closed++;
             } else {
                 throw new IllegalArgumentException("Unknown notification");

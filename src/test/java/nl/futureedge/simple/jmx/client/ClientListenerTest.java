@@ -26,9 +26,9 @@ public class ClientListenerTest {
         LogManager.getLogManager().getLogger("").setLevel(Level.FINEST);
     }
 
-    private TestInputStream input = new TestInputStream();
-    private ClientListener subject = new ClientListener(new MessageInputStream(input));
-    private Thread subjectThread = new Thread(subject);
+    private final TestInputStream input = new TestInputStream();
+    private final ClientListener subject = new ClientListener(new MessageInputStream(input));
+    private final Thread subjectThread = new Thread(subject);
 
     @Before
     public void setup() {
@@ -46,18 +46,18 @@ public class ClientListenerTest {
     @Test
     public void test() throws InterruptedException, IOException {
         // Response
-        RequestLogon request1 = new RequestLogon("username", "password");
-        ClientListener.ResponseWaiter waiter1= subject.registerRequest(request1);
+        final RequestLogon request1 = new RequestLogon(new String[]{"username", "password"});
+        final ClientListener.FutureResponse waiter1 = subject.registerRequest(request1);
         input.registerMessage(new Response(request1.getRequestId(), null));
         Assert.assertNotNull(waiter1.getResponse());
 
         // Timeout
-        RequestLogoff request2 = new RequestLogoff();
-        ClientListener.ResponseWaiter waiter2 = subject.registerRequest(request2);
+        final RequestLogoff request2 = new RequestLogoff();
+        final ClientListener.FutureResponse waiter2 = subject.registerRequest(request2);
         try {
             waiter2.getResponse();
             Assert.fail("Exception expected");
-        } catch(IOException e) {
+        } catch (final IOException e) {
             // Expected
         }
 
@@ -67,19 +67,19 @@ public class ClientListenerTest {
         // Unsupported message
         input.registerMessage(new RequestLogoff());
 
-        Counter listener1 = new Counter();
-        Object handback1 = new Object();
-        String listenerId1 = subject.registerNotificationListener(listener1, handback1);
+        final Counter listener1 = new Counter();
+        final Object handback1 = new Object();
+        final String listenerId1 = subject.registerNotificationListener(listener1, handback1);
 
-        Counter listener2 = new Counter();
-        String listenerId2 = subject.registerNotificationListener(listener2, null);
+        final Counter listener2 = new Counter();
+        final String listenerId2 = subject.registerNotificationListener(listener2, null);
         subject.removeNotificationListener(listenerId2);
 
         input.registerMessage(new Notification(listenerId1, null));
         input.registerMessage(new Notification(listenerId2, null));
 
-        RequestLogoff notificationsDoneTrigger = new RequestLogoff();
-        ClientListener.ResponseWaiter trigger = subject.registerRequest(notificationsDoneTrigger);
+        final RequestLogoff notificationsDoneTrigger = new RequestLogoff();
+        final ClientListener.FutureResponse trigger = subject.registerRequest(notificationsDoneTrigger);
         input.registerMessage(new Response(notificationsDoneTrigger.getRequestId(), null));
         trigger.getResponse();
 
@@ -93,7 +93,7 @@ public class ClientListenerTest {
         try {
             subject.registerRequest(new RequestLogoff());
             Assert.fail("Exception expected");
-        } catch(IOException e) {
+        } catch (final IOException e) {
             // Expected
         }
 
@@ -104,7 +104,7 @@ public class ClientListenerTest {
 
     @Test
     public void testServerSendsGarbage() throws InterruptedException {
-        input.registerData(new byte[] { 0,0,0,4,3,3,3,3});
+        input.registerData(new byte[]{0, 0, 0, 4, 3, 3, 3, 3});
 
         // Give it a little time to handle te data
         Thread.sleep(500);
@@ -131,7 +131,7 @@ public class ClientListenerTest {
         int count = 0;
 
         @Override
-        public void handleNotification(javax.management.Notification notification, Object handback) {
+        public void handleNotification(final javax.management.Notification notification, final Object handback) {
             count++;
         }
     }

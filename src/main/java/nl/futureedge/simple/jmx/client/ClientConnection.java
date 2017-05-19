@@ -30,7 +30,6 @@ final class ClientConnection {
     private final Map<String, ?> environment;
 
     private Socket socket;
-    private MessageInputStream input;
     private MessageOutputStream output;
 
     private ClientListener clientListener;
@@ -74,22 +73,18 @@ final class ClientConnection {
         // The socket InputStream and OutputStream are not closed directly. They
         // are shutdown and closed via method calls on the socket itself.
         output = new MessageOutputStream(socket.getOutputStream());
-        input = new MessageInputStream(socket.getInputStream());
 
         LOGGER.log(Level.FINE, "Starting receiver");
-        clientListener = new ClientListener(input);
+        clientListener = new ClientListener(new MessageInputStream(socket.getInputStream()));
         clientListenerThread = new Thread(clientListener, "jmx-client-receiver");
         clientListenerThread.start();
 
         LOGGER.log(Level.FINE, "Sending logon request");
-        final String[] credentials = (String[]) environment.get(JMXConnector.CREDENTIALS);
-        final String username = credentials == null || credentials.length < 1 ? null : credentials[0];
-        final String password = credentials == null || credentials.length < 2 ? null : credentials[1];
-        final RequestLogon logon = new RequestLogon(username, password);
+        final RequestLogon logon = new RequestLogon(environment.get(JMXConnector.CREDENTIALS));
 
         LOGGER.log(Level.FINE, "Handling logon response");
         final Response logonResponse = handleRequest(logon);
-        if (logonResponse != null && logonResponse.getException() != null) {
+        if (logonResponse.getException() != null) {
             LOGGER.log(Level.FINE, "Logon failed");
             throw new IOException("Could not logon", logonResponse.getException());
         }
@@ -116,7 +111,7 @@ final class ClientConnection {
 
         IOUtils.closeSilently(socket);
         LOGGER.log(Level.FINE, "Closed");
-        if(connectionId != null) {
+        if (connectionId != null) {
             // Only send closed notification when we could connect succesfully
             connector.sendConnectionNotification(JMXConnectionNotification.CLOSED, connectionId);
         }
@@ -132,7 +127,7 @@ final class ClientConnection {
         if (!clientListenerThread.isAlive()) {
             throw new IOException("Listener not running");
         }
-        ClientListener.ResponseWaiter waiter = clientListener.registerRequest(request);
+        final ClientListener.FutureResponse waiter = clientListener.registerRequest(request);
         send(request);
         return waiter.getResponse();
     }

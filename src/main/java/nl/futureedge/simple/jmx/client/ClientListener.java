@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.management.NotificationListener;
+import nl.futureedge.simple.jmx.exception.RequestTimedOutException;
 import nl.futureedge.simple.jmx.message.Message;
 import nl.futureedge.simple.jmx.message.Notification;
 import nl.futureedge.simple.jmx.message.Request;
@@ -19,7 +20,7 @@ import nl.futureedge.simple.jmx.stream.MessageInputStream;
 /**
  * Listener for client connections.
  */
-public final class ClientListener implements Runnable {
+final class ClientListener implements Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(ClientListener.class.getName());
 
@@ -30,8 +31,9 @@ public final class ClientListener implements Runnable {
     private final MessageInputStream input;
     private boolean stop = false;
 
-    // FIXME: Potential area for memory leak (if no response is ever received the request-id and waiter will be registered for ever)
-    private final Map<String, ResponseWaiter> requests = new HashMap<>();
+    // FIXME: Potential area for memory leak (if no response is ever received
+    // the request-id and waiter will be registered for ever)
+    private final Map<String, FutureResponse> requests = new HashMap<>();
     private final Map<String, NotificationListenerData> notificationListeners = new HashMap<>();
 
     /**
@@ -42,7 +44,6 @@ public final class ClientListener implements Runnable {
         this.input = input;
     }
 
-
     /**
      * Register a notification listener.
      * @param notificationListener the listener to request
@@ -51,15 +52,13 @@ public final class ClientListener implements Runnable {
      */
     String registerNotificationListener(final NotificationListener notificationListener, final Object handback) {
         final String notificationListenerId = UUID.randomUUID().toString();
-        notificationListeners.put(notificationListenerId,
-                new NotificationListenerData(notificationListener, handback));
+        notificationListeners.put(notificationListenerId, new NotificationListenerData(notificationListener, handback));
         return notificationListenerId;
     }
 
-
     /**
      * Remove a notification listener.
-     * @param notificationListenerId the unique identification of the notifcation listener
+     * @param notificationListenerId the unique identification of the notification listener
      */
     void removeNotificationListener(final String notificationListenerId) {
         notificationListeners.remove(notificationListenerId);
@@ -94,21 +93,37 @@ public final class ClientListener implements Runnable {
         }
     }
 
+    /**
+     * Stop the listener.
+     */
     void stop() {
         stop = true;
     }
 
+    /**
+     * Is the listener stopped? A listener is stopped when the {@link #stop}
+     * method has been called, or when a exception has occurred that the
+     * listener cannot recover from.
+     * @return true, if the listener has stopped, else false
+     */
     boolean isStopped() {
         return stop;
     }
 
-    ResponseWaiter registerRequest(final Request request) throws IOException {
-        if(stop) {
+    /**
+     * Register a new request and returns the 'future' (functions like a Future
+     * but cannot be cancelled) to retrieve the result.
+     * @param request request
+     * @return future result
+     * @throws IOException if an I/O exception occurs when registering the request
+     */
+    FutureResponse registerRequest(final Request request) throws IOException {
+        if (stop) {
             throw new IOException("Client listener is stopped");
         }
 
-        synchronized(requests) {
-            final ResponseWaiter result = new ResponseWaiter();
+        synchronized (requests) {
+            final FutureResponse result = new FutureResponse();
             requests.put(request.getRequestId(), result);
             return result;
         }
@@ -117,9 +132,10 @@ public final class ClientListener implements Runnable {
     private void handleResponse(final Response receivedResponse) {
         final String requestId = receivedResponse.getRequestId();
         synchronized (requests) {
-            final ResponseWaiter waiter = requests.remove(requestId);
-            if(waiter == null) {
-                LOGGER.log(Level.INFO, "Response received for an unknown request (could be timed out). Ignoring response.");
+            final FutureResponse waiter = requests.remove(requestId);
+            if (waiter == null) {
+                LOGGER.log(Level.INFO,
+                        "Response received for an unknown request (could be timed out). Ignoring response.");
             } else {
                 waiter.registerResponse(receivedResponse);
             }
@@ -130,7 +146,8 @@ public final class ClientListener implements Runnable {
         final NotificationListenerData listener = notificationListeners
                 .get(receivedNotification.getNotificationListenerId());
         if (listener == null) {
-            LOGGER.log(Level.INFO, "Notification received for an unknown notification listener. Ignoring notification.");
+            LOGGER.log(Level.INFO,
+                    "Notification received for an unknown notification listener. Ignoring notification.");
             return;
         }
 
@@ -160,26 +177,35 @@ public final class ClientListener implements Runnable {
     }
 
     /**
-     * Response waiter.
+     * Future response.
      */
-    static final class ResponseWaiter {
+    static final class FutureResponse {
 
         private final CountDownLatch latch = new CountDownLatch(1);
         private Response response;
 
+        /**
+         * Signal that the response has been received.
+         * @param response response
+         */
         void registerResponse(final Response response) {
             this.response = response;
             latch.countDown();
         }
 
+        /**
+         * Return the response, blocking until it has been received.
+         * @return the response
+         * @throws IOException if an error occurs when waiting for the response (timeout or interrupted)
+         */
         Response getResponse() throws IOException {
             try {
-                if(latch.await(TIMEOUT, TIMEOUT_TIMEUNIT)) {
+                if (latch.await(TIMEOUT, TIMEOUT_TIMEUNIT)) {
                     return response;
                 } else {
-                    throw new IOException("Response not received within timeout period");
+                    throw new RequestTimedOutException();
                 }
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new InterruptedIOException("Response wait interrupted");
             }
         }

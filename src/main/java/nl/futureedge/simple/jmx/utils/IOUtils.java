@@ -31,7 +31,7 @@ public final class IOUtils {
     public static void ignoreIOException(final IOFunction ioFunction) {
         try {
             ioFunction.execute();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             // Ignore
             LOGGER.log(Level.FINE, "Ignoring exception", e);
         }

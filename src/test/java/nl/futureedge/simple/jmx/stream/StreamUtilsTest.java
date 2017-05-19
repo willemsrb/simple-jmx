@@ -25,7 +25,7 @@ public class StreamUtilsTest {
         testLength(65530);
     }
 
-    private void testLength(int length) throws IOException {
+    private void testLength(final int length) throws IOException {
         final byte[] data = StreamUtils.serializeLength(length);
         final int result = StreamUtils.deserializeLength(data);
         Assert.assertEquals(length, result);
@@ -38,10 +38,10 @@ public class StreamUtilsTest {
 
     @Test
     public void testMessage() throws IOException, ReflectiveOperationException {
-        testMessage(new RequestLogon("username", "password"));
+        testMessage(new RequestLogon(new String[]{"username", "password"}));
     }
 
-    private void testMessage(Message message) throws IOException, ReflectiveOperationException {
+    private void testMessage(final Message message) throws IOException, ReflectiveOperationException {
         final byte[] data = StreamUtils.serializeMessage(message);
         final Message result = StreamUtils.deserializeMessage(data);
         assertEquals(message, result);
@@ -50,10 +50,19 @@ public class StreamUtilsTest {
     private void assertEquals(final Message expected, final Message actual) throws ReflectiveOperationException {
         Assert.assertEquals(expected.getClass(), actual.getClass());
 
-        for (Field field : expected.getClass().getDeclaredFields()) {
+        for (final Field field : expected.getClass().getDeclaredFields()) {
             field.setAccessible(true);
 
-            Assert.assertEquals("Field '" + field.getName() + "' not equal", field.get(expected), field.get(actual));
+            final Object expectedFieldValue = field.get(expected);
+            final Object actualFieldValue = field.get(actual);
+            if (expectedFieldValue.getClass().isArray()) {
+                final Object[] expectedArray = (Object[]) expectedFieldValue;
+                final Object[] actualArray = (Object[]) actualFieldValue;
+
+                Assert.assertArrayEquals("Array field '" + field.getName() + "' not equal", expectedArray, actualArray);
+            } else {
+                Assert.assertEquals("Field '" + field.getName() + "' not equal", expectedFieldValue, actualFieldValue);
+            }
         }
     }
 
@@ -64,7 +73,7 @@ public class StreamUtilsTest {
         try {
             constructor.newInstance();
             Assert.fail("Constructor should fail");
-        } catch (InvocationTargetException e) {
+        } catch (final InvocationTargetException e) {
             Assert.assertEquals(IllegalStateException.class, e.getCause().getClass());
         }
     }

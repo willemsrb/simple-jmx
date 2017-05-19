@@ -11,7 +11,7 @@ public class ServerProviderTest {
 
     @Test
     public void test() throws MalformedURLException {
-        JMXConnectorServer connector = new ServerProvider().newJMXConnectorServer(new JMXServiceURL(SimpleJmx.PROTOCOL, "localhost", 0), null, null);
+        final JMXConnectorServer connector = new ServerProvider().newJMXConnectorServer(new JMXServiceURL(SimpleJmx.PROTOCOL, "localhost", 0), null, null);
         Assert.assertNotNull(connector);
     }
 

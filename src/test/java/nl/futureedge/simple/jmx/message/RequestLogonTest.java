@@ -7,10 +7,9 @@ public class RequestLogonTest {
 
     @Test
     public void test() {
-        final RequestLogon subject = new RequestLogon("user", "password");
+        final RequestLogon subject = new RequestLogon(new String[]{"user", "password"});
 
-        Assert.assertEquals("user", subject.getUsername());
-        Assert.assertEquals("password", subject.getPassword());
+        Assert.assertArrayEquals(new String[]{"user", "password"}, (String[]) subject.getCredentials());
         Assert.assertNotNull(subject.toString());
     }
 }

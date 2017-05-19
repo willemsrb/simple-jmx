@@ -7,31 +7,23 @@ public final class RequestLogon extends Request {
 
     private static final long serialVersionUID = 1L;
 
-    private final String username;
-    private final String password;
+    private final Object credentials;
 
     /**
      * Constructor.
-     * @param username username
-     * @param password password
+     * @param credentials credentials
      */
-    public RequestLogon(final String username, final String password) {
-        super();
-        this.username = username;
-        this.password = password;
+    public RequestLogon(final Object credentials) {
+        this.credentials = credentials;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
+    public Object getCredentials() {
+        return credentials;
     }
 
     @Override
     public String toString() {
-        return "RequestLogon [requestId=" + getRequestId() + ", username=" + username + "]";
+        return "RequestLogon [requestId=" + getRequestId() + ", credentials=" + (credentials == null ? "***not supplied***" : "***supplied***") + "]";
     }
 
 }

@@ -14,6 +14,13 @@
     <bean id="testServerConnector" class="org.springframework.jmx.support.ConnectorServerFactoryBean">
         <property name="objectName" value="connector:name=simple"/>
         <property name="serviceUrl" value="service:jmx:simple://0.0.0.0:0"/>
+        <property name="environmentMap">
+            <map>
+                <entry key="jmx.remote.authenticator">
+                    <bean class="nl.futureedge.simple.jmx.authenticator.TestAuthenticator"/>
+                </entry>
+            </map>
+        </property>
     </bean>
 
     <bean id="testBeanExporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false">

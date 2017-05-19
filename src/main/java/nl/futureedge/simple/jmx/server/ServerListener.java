@@ -9,6 +9,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.management.remote.JMXAuthenticator;
 import nl.futureedge.simple.jmx.ssl.SslSocketFactory;
 import nl.futureedge.simple.jmx.utils.IOUtils;
 
@@ -24,20 +25,23 @@ final class ServerListener implements Runnable {
     private final int serverId;
     private final AtomicInteger serverConnectionId = new AtomicInteger(1);
     private final ServerConnector serverConnector;
+    private final JMXAuthenticator authenticator;
 
     private boolean stop = false;
 
-    private ExecutorService executorService;
-    private ServerSocket serverSocket;
+    private final ExecutorService executorService;
+    private final ServerSocket serverSocket;
 
     /**
      * Constructor.
      * @param serverConnector connector
+     * @param authenticator authenticator
      * @throws IOException if an I/O error occurs when constructing the server listener
      */
-    ServerListener(final ServerConnector serverConnector) throws IOException {
+    ServerListener(final ServerConnector serverConnector, final JMXAuthenticator authenticator) throws IOException {
         this.serverConnector = serverConnector;
-        this.serverId = SERVER_ID.getAndIncrement();
+        this.authenticator = authenticator;
+        serverId = SERVER_ID.getAndIncrement();
 
         // Setup executor service
         final ThreadFactory threadFactory = new ConnectionThreadFactory(serverId);
@@ -57,16 +61,16 @@ final class ServerListener implements Runnable {
         while (!stop) {
             try {
                 LOGGER.log(Level.FINE, "Waiting for new client connection");
-                executorService.submit(new ServerConnection(serverSocket.accept(), createConnectionId(),
+                executorService.submit(new ServerConnection(serverSocket.accept(), createConnectionId(), authenticator,
                         serverConnector.getMBeanServer()));
-            } catch (SocketException e) {
+            } catch (final SocketException e) {
                 if (stop) {
                     // Expected
                     LOGGER.log(Level.FINE, "Server shutting down");
                 } else {
                     LOGGER.log(Level.SEVERE, "Unexpected error during accept of clients", e);
                 }
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 LOGGER.log(Level.SEVERE, "Unexpected error during accept of clients", e);
             }
         }
