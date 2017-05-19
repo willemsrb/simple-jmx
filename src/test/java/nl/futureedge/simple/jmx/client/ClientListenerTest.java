@@ -3,6 +3,7 @@ package nl.futureedge.simple.jmx.client;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import javax.management.NotificationListener;
@@ -11,6 +12,7 @@ import nl.futureedge.simple.jmx.message.RequestLogoff;
 import nl.futureedge.simple.jmx.message.RequestLogon;
 import nl.futureedge.simple.jmx.message.Response;
 import nl.futureedge.simple.jmx.stream.MessageInputStream;
+import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -106,8 +108,8 @@ public class ClientListenerTest {
     public void testServerSendsGarbage() throws InterruptedException {
         input.registerData(new byte[]{0, 0, 0, 4, 3, 3, 3, 3});
 
-        // Give it a little time to handle te data
-        Thread.sleep(500);
+        // Give it a little time to handle the data
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(() -> subject.isStopped());
 
         Assert.assertTrue(subject.isStopped());
         subjectThread.join(5000);
@@ -119,7 +121,7 @@ public class ClientListenerTest {
         input.done();
 
         // Give it a little time to handle to handle the closure
-        Thread.sleep(500);
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(() -> subject.isStopped());
 
         Assert.assertTrue(subject.isStopped());
         subjectThread.join(5000);

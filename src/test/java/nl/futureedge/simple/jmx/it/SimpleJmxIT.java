@@ -20,6 +20,7 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXServiceURL;
 import nl.futureedge.simple.jmx.exception.InvalidCredentialsException;
+import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -239,27 +240,21 @@ public class SimpleJmxIT {
                 jmxc1.connect();
 
                 // Wait for threaded notification
-                Thread.sleep(100);
-
-                Assert.assertEquals(1, counter.opened);
+                Awaitility.await().atMost(1, TimeUnit.SECONDS).until(() -> counter.opened == 1);
                 Assert.assertEquals(0, counter.closed);
 
                 jmxc2.connect();
 
                 // Wait for threaded notification
-                Thread.sleep(100);
-
-                Assert.assertEquals(2, counter.opened);
+                Awaitility.await().atMost(1, TimeUnit.SECONDS).until(() -> counter.opened == 2);
                 Assert.assertEquals(0, counter.closed);
 
                 jmxc2.removeConnectionNotificationListener(counter);
             }
 
             // Wait for threaded notification
-            Thread.sleep(100);
-
+            Awaitility.await().atMost(1, TimeUnit.SECONDS).until(() -> counter.closed == 1);
             Assert.assertEquals(2, counter.opened);
-            Assert.assertEquals(1, counter.closed);
 
             LOGGER.log(Level.INFO, "Shutdown...");
         }

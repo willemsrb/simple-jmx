@@ -54,5 +54,4 @@ public final class Response implements Message {
         return "Response [requestId=" + requestId + ", result=" + (result == null ? "null" : "not null")
                 + ", exception=" + (exception == null ? "null" : "not null") + "]";
     }
-
 }

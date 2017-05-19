@@ -22,6 +22,8 @@ import javax.security.auth.Subject;
  */
 final class ClientConnector implements JMXConnector {
 
+    public static final String TIMEOUT = "jmx.remote.simple.timeout";
+
     private static final Logger LOGGER = Logger.getLogger(ClientConnector.class.getName());
 
     private static final ClientMBeanServerConnectionFactory FACTORY = new ClientMBeanServerConnectionFactory();

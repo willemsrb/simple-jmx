@@ -1,7 +1,6 @@
 package nl.futureedge.simple.jmx.client;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -26,13 +25,12 @@ final class ClientListener implements Runnable {
 
     // TODO: Make timeout configurable
     private static final int TIMEOUT = 3;
-    private static final TimeUnit TIMEOUT_TIMEUNIT = TimeUnit.SECONDS;
 
     private final MessageInputStream input;
     private boolean stop = false;
 
-    // FIXME: Potential area for memory leak (if no response is ever received
-    // the request-id and waiter will be registered for ever)
+    // FIXME: Potential area for memory leak
+    // if no response is ever received the request-id and waiter will be registered for ever)
     private final Map<String, FutureResponse> requests = new HashMap<>();
     private final Map<String, NotificationListenerData> notificationListeners = new HashMap<>();
 
@@ -200,13 +198,14 @@ final class ClientListener implements Runnable {
          */
         Response getResponse() throws IOException {
             try {
-                if (latch.await(TIMEOUT, TIMEOUT_TIMEUNIT)) {
+                if (latch.await(TIMEOUT, TimeUnit.SECONDS)) {
                     return response;
                 } else {
                     throw new RequestTimedOutException();
                 }
             } catch (final InterruptedException e) {
-                throw new InterruptedIOException("Response wait interrupted");
+                Thread.currentThread().interrupt();
+                return null;
             }
         }
     }

@@ -6,12 +6,15 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.net.SocketException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import javax.management.MBeanServer;
 import javax.management.remote.JMXServiceURL;
 import javax.net.ssl.SSLSocket;
 import nl.futureedge.simple.jmx.ssl.SslSocketFactory;
+import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -82,8 +85,9 @@ public class ServerListenerTest {
         socketField.setAccessible(true);
         socketField.set(subject, mockSocket);
 
+        AtomicLong counter = new AtomicLong(0);
         Mockito.when(mockSocket.accept()).thenAnswer(invocation -> {
-            Thread.sleep(1000);
+            counter.getAndIncrement();
             throw new SocketException();
         });
 
@@ -91,7 +95,7 @@ public class ServerListenerTest {
         Assert.assertFalse(subject.isStopped());
 
         // Let it fail a couple of time
-        Thread.sleep(5000);
+        Awaitility.await().atMost(3, TimeUnit.SECONDS).until(() -> counter.get() > 5);
         Assert.assertFalse(subject.isStopped());
 
         subject.stop();
@@ -109,8 +113,9 @@ public class ServerListenerTest {
         socketField.setAccessible(true);
         socketField.set(subject, mockSocket);
 
+        AtomicLong counter = new AtomicLong(0);
         Mockito.when(mockSocket.accept()).thenAnswer(invocation -> {
-            Thread.sleep(1000);
+            counter.getAndIncrement();
             throw new IOException();
         });
 
@@ -118,7 +123,7 @@ public class ServerListenerTest {
         Assert.assertFalse(subject.isStopped());
 
         // Let it fail a couple of time
-        Thread.sleep(5000);
+        Awaitility.await().atMost(3, TimeUnit.SECONDS).until(() -> counter.get() > 5);
         Assert.assertFalse(subject.isStopped());
 
         subject.stop();
