@@ -5,9 +5,8 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
-import javax.management.ObjectName;
+import javax.management.remote.JMXConnectionNotification;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
 import nl.futureedge.simple.jmx.message.Request;
@@ -22,10 +21,11 @@ import nl.futureedge.simple.jmx.utils.IOUtils;
 /**
  * Client connection.
  */
-public final class ClientConnection {
+final class ClientConnection {
 
     private static final Logger LOGGER = Logger.getLogger(ClientConnection.class.getName());
 
+    private final ClientConnector connector;
     private final JMXServiceURL serviceUrl;
     private final Map<String, ?> environment;
 
@@ -40,10 +40,12 @@ public final class ClientConnection {
 
     /**
      * Constructor.
+     * @param connector client connector (to send notifications)
      * @param serviceUrl jmx service url
      * @param environment environment
      */
-    public ClientConnection(final JMXServiceURL serviceUrl, final Map<String, ?> environment) {
+    ClientConnection(final ClientConnector connector, final JMXServiceURL serviceUrl, final Map<String, ?> environment) {
+        this.connector = connector;
         this.serviceUrl = serviceUrl;
         this.environment = environment;
     }
@@ -53,7 +55,7 @@ public final class ClientConnection {
      * @return connection id
      * @throws IOException if the connection is not connected
      */
-    public String getConnectionId() throws IOException {
+    String getConnectionId() throws IOException {
         if (connectionId == null) {
             throw new IOException("Not connected");
         }
@@ -64,7 +66,7 @@ public final class ClientConnection {
      * Connect the connection to the server.
      * @throws IOException if an I/O error occurs when connecting
      */
-    public void connect() throws IOException {
+    void connect() throws IOException {
         LOGGER.log(Level.FINE, "Connecting to {0}:{1,number,#####} ...",
                 new Object[]{serviceUrl.getHost(), serviceUrl.getPort()});
         socket = new SslSocketFactory().createSocket(serviceUrl);
@@ -94,13 +96,14 @@ public final class ClientConnection {
         connectionId = (String) logonResponse.getResult();
 
         LOGGER.log(Level.FINE, "Connected; connectionId = {0}", connectionId);
+        connector.sendConnectionNotification(JMXConnectionNotification.OPENED, connectionId);
     }
 
     /**
      * Close the connection.
      * @throws IOException if an I/O error occurs when closing the connection
      */
-    public void close() throws IOException {
+    void close() throws IOException {
         LOGGER.log(Level.FINE, "Sending logoff");
         try {
             handleRequest(new RequestLogoff());
@@ -113,6 +116,10 @@ public final class ClientConnection {
 
         IOUtils.closeSilently(socket);
         LOGGER.log(Level.FINE, "Closed");
+        if(connectionId != null) {
+            // Only send closed notification when we could connect succesfully
+            connector.sendConnectionNotification(JMXConnectionNotification.CLOSED, connectionId);
+        }
     }
 
     /**
@@ -121,12 +128,13 @@ public final class ClientConnection {
      * @return response
      * @throws IOException if an I/O error occurs when handling the request
      */
-    public Response handleRequest(final Request request) throws IOException {
+    Response handleRequest(final Request request) throws IOException {
         if (!clientListenerThread.isAlive()) {
             throw new IOException("Listener not running");
         }
+        ClientListener.ResponseWaiter waiter = clientListener.registerRequest(request);
         send(request);
-        return clientListener.getResponseFor(request);
+        return waiter.getResponse();
     }
 
     private void send(final Request request) throws IOException {
@@ -139,24 +147,19 @@ public final class ClientConnection {
 
     /**
      * Register a notification listener.
-     * @param objectName object name to register the listener on
      * @param notificationListener the listener to request
-     * @param notificationFilter filter
      * @param handback handback given back to the listener
      * @return unique identification for notification listener
      */
-    public String registerNotificationListener(final ObjectName objectName,
-                                               final NotificationListener notificationListener, final NotificationFilter notificationFilter,
-                                               final Object handback) {
-        return clientListener.registerNotificationListener(objectName, notificationListener, notificationFilter,
-                handback);
+    String registerNotificationListener(final NotificationListener notificationListener, final Object handback) {
+        return clientListener.registerNotificationListener(notificationListener, handback);
     }
 
     /**
      * Remove a notification listener.
      * @param notificationListenerId the unique identification of the notifcation listener
      */
-    public void removeNotificationListener(final String notificationListenerId) {
+    void removeNotificationListener(final String notificationListenerId) {
         clientListener.removeNotificationListener(notificationListenerId);
     }
 

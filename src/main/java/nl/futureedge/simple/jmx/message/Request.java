@@ -6,6 +6,7 @@ import java.util.UUID;
  * Base request.
  */
 public class Request implements Message {
+
     private static final long serialVersionUID = 1L;
 
     private final String requestId = UUID.randomUUID().toString();

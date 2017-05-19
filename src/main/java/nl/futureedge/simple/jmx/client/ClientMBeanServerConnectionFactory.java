@@ -18,7 +18,7 @@ import nl.futureedge.simple.jmx.message.Response;
 /**
  * Client MBeanServerConnection factory.
  */
-public final class ClientMBeanServerConnectionFactory {
+final class ClientMBeanServerConnectionFactory {
 
     private static final Class<?>[] ADD_LISTENER_REMOTE = {ObjectName.class, ObjectName.class,
             NotificationFilter.class, Object.class};
@@ -30,7 +30,7 @@ public final class ClientMBeanServerConnectionFactory {
     private static final int ADD_LISTENER_PARAMETER_FILTER = 2;
     private static final int ADD_LISTENER_PARAMETER_HANDBACK = 3;
 
-    public MBeanServerConnection createConnection(final ClientConnection clientConnection) {
+    MBeanServerConnection createConnection(final ClientConnection clientConnection) {
         return (MBeanServerConnection) Proxy.newProxyInstance(this.getClass().getClassLoader(),
                 new Class[]{MBeanServerConnection.class}, new MBeanServerConnectionProxy(clientConnection));
     }
@@ -116,8 +116,8 @@ public final class ClientMBeanServerConnectionFactory {
                 final ObjectName name = (ObjectName) args[ADD_LISTENER_PARAMETER_NAME];
                 final NotificationFilter filter = (NotificationFilter) args[ADD_LISTENER_PARAMETER_FILTER];
 
-                final String notificationListenerId = clientConnection.registerNotificationListener(name,
-                        (NotificationListener) args[ADD_LISTENER_PARAMETER_LISTENER], filter,
+                final String notificationListenerId = clientConnection.registerNotificationListener(
+                        (NotificationListener) args[ADD_LISTENER_PARAMETER_LISTENER],
                         args[ADD_LISTENER_PARAMETER_HANDBACK]);
 
                 final Request request = new RequestAddNotificationListener(notificationListenerId, name, filter);

@@ -48,7 +48,7 @@ final class ServerListener implements Runnable {
         serverConnector.updateAddress(serverSocket.getLocalPort());
     }
 
-    public int getServerId() {
+    int getServerId() {
         return serverId;
     }
 
@@ -79,12 +79,12 @@ final class ServerListener implements Runnable {
         return serverId + "-" + serverConnectionId.getAndIncrement();
     }
 
-    public void stop() {
+    void stop() {
         stop = true;
         IOUtils.closeSilently(serverSocket);
     }
 
-    public boolean isStopped() {
+    boolean isStopped() {
         return stop;
     }
 

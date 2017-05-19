@@ -134,7 +134,7 @@ public final class SslSocketFactory {
     /**
      * Exception during SSL configuration.
      */
-    public static final class SslConfigurationException extends JMXProviderException {
+    static final class SslConfigurationException extends JMXProviderException {
 
         private static final long serialVersionUID = 1L;
 
@@ -143,7 +143,7 @@ public final class SslSocketFactory {
          * @param message String
          * @param cause Eigenlijke Exception
          */
-        public SslConfigurationException(final String message, final Throwable cause) {
+        SslConfigurationException(final String message, final Throwable cause) {
             super(message, cause);
         }
     }

@@ -41,7 +41,7 @@ public final class IOUtils {
      * IO Function.
      */
     @FunctionalInterface
-    public static interface IOFunction {
+    public interface IOFunction {
 
         /**
          * Execute function.

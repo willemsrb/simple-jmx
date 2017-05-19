@@ -8,9 +8,13 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import javax.management.Attribute;
+import javax.management.ListenerNotFoundException;
 import javax.management.MBeanInfo;
 import javax.management.MBeanServerConnection;
+import javax.management.Notification;
+import javax.management.NotificationListener;
 import javax.management.ObjectName;
+import javax.management.remote.JMXConnectionNotification;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXConnectorServer;
@@ -157,6 +161,7 @@ public class SimpleJmxIT {
                     .connect(new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), null)) {
                 Assert.fail("Should fail");
             } catch (final IOException e) {
+                LOGGER.log(Level.INFO, "Received exception", e);
                 // Ok
                 Assert.assertEquals(InvalidCredentialsException.class, e.getCause().getClass());
             }
@@ -166,5 +171,116 @@ public class SimpleJmxIT {
 
         LOGGER.log(Level.INFO, "Done...");
     }
+
+    @Test
+    public void testClientUnconnected() throws IOException {
+        LOGGER.log(Level.INFO, "Startup...");
+        try (ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+                new String[]{"classpath:it-context.xml"})) {
+            context.registerShutdownHook();
+
+            final JMXConnectorServer testServerConnector = context.getBean("testServerConnector",
+                    JMXConnectorServer.class);
+            final int testServerConnectorPort = testServerConnector.getAddress().getPort();
+
+            final Map<String, Object> environment = new HashMap<>();
+            environment.put(JMXConnector.CREDENTIALS, new String[]{"admin", "admin"});
+            try (final JMXConnector jmxc = JMXConnectorFactory
+                    .newJMXConnector(new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment)) {
+                try {
+                    jmxc.getConnectionId();
+                    Assert.fail("IOException (not connected) expected");
+                } catch(IOException e) {
+                    // Expected
+                }
+
+                try {
+                    jmxc.getMBeanServerConnection();
+                    Assert.fail("IOException (not connected) expected");
+                } catch(IOException e) {
+                    // Expected
+                }
+
+                jmxc.connect();
+                Assert.assertNotNull(jmxc.getConnectionId());
+            }
+
+            LOGGER.log(Level.INFO, "Shutdown...");
+        }
+
+        LOGGER.log(Level.INFO, "Done...");
+    }
+
+    @Test
+    public void testConnectionNotifier() throws IOException, ListenerNotFoundException, InterruptedException {
+        LOGGER.log(Level.INFO, "Startup...");
+        try (ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+                new String[]{"classpath:it-context.xml"})) {
+            context.registerShutdownHook();
+
+            final JMXConnectorServer testServerConnector = context.getBean("testServerConnector",
+                    JMXConnectorServer.class);
+            final int testServerConnectorPort = testServerConnector.getAddress().getPort();
+
+            final Map<String, Object> environment = new HashMap<>();
+            environment.put(JMXConnector.CREDENTIALS, new String[]{"admin", "admin"});
+
+            Counter counter = new Counter();
+            try (final JMXConnector jmxc1 = JMXConnectorFactory.newJMXConnector(new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment);
+                final JMXConnector jmxc2 = JMXConnectorFactory.newJMXConnector(new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment)) {
+                jmxc1.addConnectionNotificationListener(counter, null, null);
+                jmxc2.addConnectionNotificationListener(counter, null, null);
+
+                Assert.assertEquals(0, counter.opened);
+                Assert.assertEquals(0, counter.closed);
+
+                jmxc1.connect();
+
+                // Wait for threaded notification
+                Thread.sleep(100);
+
+                Assert.assertEquals(1, counter.opened);
+                Assert.assertEquals(0, counter.closed);
+
+                jmxc2.connect();
+
+                // Wait for threaded notification
+                Thread.sleep(100);
+
+                Assert.assertEquals(2, counter.opened);
+                Assert.assertEquals(0, counter.closed);
+
+                jmxc2.removeConnectionNotificationListener(counter);
+            }
+
+            // Wait for threaded notification
+            Thread.sleep(100);
+
+            Assert.assertEquals(2, counter.opened);
+            Assert.assertEquals(1, counter.closed);
+
+            LOGGER.log(Level.INFO, "Shutdown...");
+        }
+
+        LOGGER.log(Level.INFO, "Done...");
+    }
+
+    private static final class Counter implements NotificationListener {
+
+        int opened = 0;
+        int closed = 0;
+
+        @Override
+        public void handleNotification(Notification notification, Object handback) {
+            if(JMXConnectionNotification.OPENED.equals(notification.getType())) {
+                opened++;
+            } else if(JMXConnectionNotification.CLOSED.equals(notification.getType())) {
+                closed++;
+            } else {
+                throw new IllegalArgumentException("Unknown notification");
+            }
+        }
+    }
+
 
 }

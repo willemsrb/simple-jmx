@@ -24,9 +24,8 @@ public final class MessageInputStream {
     /**
      * Constructor.
      * @param base base input stream
-     * @throws IOException on I/O errors
      */
-    public MessageInputStream(final InputStream base) throws IOException {
+    public MessageInputStream(final InputStream base) {
         input = base;
     }
 

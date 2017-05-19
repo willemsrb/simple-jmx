@@ -3,12 +3,16 @@ package nl.futureedge.simple.jmx.client;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.management.ListenerNotFoundException;
 import javax.management.MBeanServerConnection;
+import javax.management.NotificationBroadcasterSupport;
 import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
+import javax.management.remote.JMXConnectionNotification;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
 import javax.security.auth.Subject;
@@ -16,23 +20,26 @@ import javax.security.auth.Subject;
 /**
  * JMX Client connector.
  */
-public final class ClientConnector implements JMXConnector {
+final class ClientConnector implements JMXConnector {
 
     private static final Logger LOGGER = Logger.getLogger(ClientConnector.class.getName());
 
     private static final ClientMBeanServerConnectionFactory FACTORY = new ClientMBeanServerConnectionFactory();
+    private static final AtomicLong NOTIFICATION_SEQUENCE = new AtomicLong(1);
 
     private final JMXServiceURL serviceUrl;
     private final Map<String, ?> baseEnvironment;
+    private final NotificationBroadcasterSupport notificationBroadcaster = new NotificationBroadcasterSupport(Executors.newCachedThreadPool());
 
     private ClientConnection clientConnection;
+
 
     /**
      * Constructor.
      * @param serviceUrl jmx service url
      * @param baseEnvironment jmx environment
      */
-    public ClientConnector(final JMXServiceURL serviceUrl, final Map<String, ?> baseEnvironment) {
+    ClientConnector(final JMXServiceURL serviceUrl, final Map<String, ?> baseEnvironment) {
         this.serviceUrl = serviceUrl;
         this.baseEnvironment = baseEnvironment;
     }
@@ -63,7 +70,7 @@ public final class ClientConnector implements JMXConnector {
             }
 
             LOGGER.log(Level.FINE, "Creating new client connection");
-            clientConnection = new ClientConnection(serviceUrl, environment);
+            clientConnection = new ClientConnection(this, serviceUrl, environment);
             try {
                 LOGGER.log(Level.FINE, "Creating new client connection");
                 clientConnection.connect();
@@ -101,25 +108,26 @@ public final class ClientConnector implements JMXConnector {
         return FACTORY.createConnection(clientConnection);
     }
 
+    void sendConnectionNotification(String type, String connectionId) {
+        final JMXConnectionNotification notification = new JMXConnectionNotification(type, "", connectionId, NOTIFICATION_SEQUENCE.getAndIncrement(), null, null);
+        notificationBroadcaster.sendNotification(notification);
+    }
+
     @Override
     public void addConnectionNotificationListener(final NotificationListener listener, final NotificationFilter filter,
                                                   final Object handback) {
-        // TODO: handle connection notification listeners
-        throw new UnsupportedOperationException(
-                "addConnectionNotificationListener(NotificationListener, NotificationFilter, Object)");
+        notificationBroadcaster.addNotificationListener(listener, filter, handback);
     }
 
     @Override
     public void removeConnectionNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
-        // TODO: handle connection notification listeners
-        throw new UnsupportedOperationException("addConnectionNotificationListener(NotificationListener)");
+        notificationBroadcaster.removeNotificationListener(listener);
     }
 
     @Override
     public void removeConnectionNotificationListener(final NotificationListener listener, final NotificationFilter filter,
                                                      final Object handback) throws ListenerNotFoundException {
-        // TODO: handle connection notification listeners
-        throw new UnsupportedOperationException("removeConnectionNotificationListener");
+        notificationBroadcaster.removeNotificationListener(listener, filter, handback);
     }
 
 }

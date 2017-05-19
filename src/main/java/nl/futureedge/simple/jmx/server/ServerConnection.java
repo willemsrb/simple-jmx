@@ -105,7 +105,7 @@ final class ServerConnection implements Runnable {
         LOGGER.log(Level.FINE, "Server connection closed.");
     }
 
-    public boolean isStopped() {
+    boolean isStopped() {
         return stop;
     }
 
@@ -218,7 +218,7 @@ final class ServerConnection implements Runnable {
          * @param notificationListenerId notification listener id sent with the {@link Notification}
          * @param objectName object name
          */
-        public NotificationSender(final String notificationListenerId, final ObjectName objectName) {
+        NotificationSender(final String notificationListenerId, final ObjectName objectName) {
             this.notificationListenerId = notificationListenerId;
             this.objectName = objectName;
         }
@@ -226,7 +226,7 @@ final class ServerConnection implements Runnable {
         /**
          * @return object name
          */
-        public ObjectName getObjectName() {
+        ObjectName getObjectName() {
             return objectName;
         }
 
