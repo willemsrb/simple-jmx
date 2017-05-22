@@ -30,6 +30,17 @@ final class ClientMBeanServerConnectionFactory {
     private static final int ADD_LISTENER_PARAMETER_FILTER = 2;
     private static final int ADD_LISTENER_PARAMETER_HANDBACK = 3;
 
+    /**
+     * Create a new client mbean server connection factory.
+     */
+    ClientMBeanServerConnectionFactory() {
+    }
+
+    /**
+     * Create a new mbean server connection.
+     * @param clientConnection client connection
+     * @return mbean server connection
+     */
     MBeanServerConnection createConnection(final ClientConnection clientConnection) {
         return (MBeanServerConnection) Proxy.newProxyInstance(this.getClass().getClassLoader(),
                 new Class[]{MBeanServerConnection.class}, new MBeanServerConnectionProxy(clientConnection));
@@ -65,7 +76,7 @@ final class ClientMBeanServerConnectionFactory {
         private final ClientConnection clientConnection;
 
         /**
-         * Constructor.
+         * Create a new mbean server connection proxy.
          * @param clientConnection client connection
          */
         MBeanServerConnectionProxy(final ClientConnection clientConnection) {

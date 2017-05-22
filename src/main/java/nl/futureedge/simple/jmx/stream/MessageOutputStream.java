@@ -22,7 +22,7 @@ public final class MessageOutputStream {
     private final BufferedOutputStream output;
 
     /**
-     * Constructor.
+     * Create a new message output stream.
      * @param base base output stream
      * @throws IOException on I/O errors
      */

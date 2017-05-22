@@ -22,7 +22,7 @@ public final class MessageInputStream {
     private final InputStream input;
 
     /**
-     * Constructor.
+     * Create a new message input stream.
      * @param base base input stream
      */
     public MessageInputStream(final InputStream base) {

@@ -15,7 +15,7 @@ public final class RequestAddNotificationListener extends Request {
     private final NotificationFilter filter;
 
     /**
-     * Constructor.
+     * Create a new add notification listener request.
      * @param notificationListenerId unique notification listener identification
      * @param name mbean to register the notification listener for
      * @param filter notification filter

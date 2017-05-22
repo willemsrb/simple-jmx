@@ -10,7 +10,7 @@ public final class RequestLogon extends Request {
     private final Object credentials;
 
     /**
-     * Constructor.
+     * Create a new logon request.
      * @param credentials credentials
      */
     public RequestLogon(final Object credentials) {

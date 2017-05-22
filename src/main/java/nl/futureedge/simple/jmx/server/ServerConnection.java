@@ -12,11 +12,13 @@ import java.util.logging.Logger;
 import javax.management.InstanceNotFoundException;
 import javax.management.ListenerNotFoundException;
 import javax.management.MBeanServer;
+import javax.management.MBeanServerConnection;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
 import javax.management.OperationsException;
 import javax.management.remote.JMXAuthenticator;
 import javax.security.auth.Subject;
+import nl.futureedge.simple.jmx.access.JMXAccessController;
 import nl.futureedge.simple.jmx.exception.InvalidCredentialsException;
 import nl.futureedge.simple.jmx.exception.NotLoggedOnException;
 import nl.futureedge.simple.jmx.exception.UnknownRequestException;
@@ -42,6 +44,7 @@ final class ServerConnection implements Runnable {
     private final Socket socket;
     private final String connectionId;
     private final JMXAuthenticator authenticator;
+    private final JMXAccessController accessController;
 
     private final MessageInputStream input;
     private final MessageOutputStream output;
@@ -53,17 +56,18 @@ final class ServerConnection implements Runnable {
     private boolean stop = false;
 
     /**
-     * Constructor.
+     * Create a new server connection.
      * @param socket server socket to communicate via
      * @param connectionId connection id for this connection
      * @param authenticator authenticator
      * @param mBeanServer mbean server
      */
     ServerConnection(final Socket socket, final String connectionId, final JMXAuthenticator authenticator,
-                     final MBeanServer mBeanServer) throws IOException {
+                     final JMXAccessController accessController, final MBeanServer mBeanServer) throws IOException {
         this.socket = socket;
         this.connectionId = connectionId;
         this.authenticator = authenticator;
+        this.accessController = accessController;
 
         // The socket InputStream and OutputStream are not closed directly. They
         // are closed via method calls on the socket itself.
@@ -149,7 +153,6 @@ final class ServerConnection implements Runnable {
             }
         }
         return response;
-
     }
 
     /**
@@ -173,10 +176,30 @@ final class ServerConnection implements Runnable {
      * @return response
      */
     private Response handleExecute(final RequestExecute request) {
-        Response response = null;
-
+        // Check method
+        final String methodName = request.getMethodName();
+        final Method method;
         try {
-            final Method method = MBeanServer.class.getMethod(request.getMethodName(), request.getParameterClasses());
+            // Check the method is in the MBeanServerConnection class
+            MBeanServerConnection.class.getMethod(methodName, request.getParameterClasses());
+            // Get the 'real' method to invoke
+            method = mBeanServer.getClass().getMethod(methodName, request.getParameterClasses());
+        } catch (final ReflectiveOperationException e) {
+            LOGGER.log(Level.WARNING, "Illegal method: " + methodName, e);
+            return new Response(request.getRequestId(), new SecurityException("Illegal method"));
+        }
+
+        // Check access
+        try {
+            accessController.checkAccess(subject, request.getMethodName(), request.getParameterValues());
+        } catch (final SecurityException e) {
+            LOGGER.log(Level.WARNING, "No access to: " + methodName, e);
+            return new Response(request.getRequestId(), new SecurityException("Illegal access"));
+        }
+
+        // Invoke
+        Response response = null;
+        try {
             final Object result = method.invoke(mBeanServer, request.getParameterValues());
             response = new Response(request.getRequestId(), result);
         } catch (final InvocationTargetException e) {
@@ -186,7 +209,7 @@ final class ServerConnection implements Runnable {
                 response = new Response(request.getRequestId(), e);
             }
         } catch (final ReflectiveOperationException e) {
-            response = new Response(request.getRequestId(), e);
+            return new Response(request.getRequestId(), e);
         }
 
         return response;
@@ -198,8 +221,19 @@ final class ServerConnection implements Runnable {
      * @return response
      */
     private Response handleAddNotificationListener(final RequestAddNotificationListener request) {
+        // Listener
         final NotificationSender notificationSender = new NotificationSender(request.getNotificationListenerId(),
                 request.getName());
+
+        // Check access
+        try {
+            accessController.checkAccess(subject, "addNotificationListener", new Object[]{request.getName(), notificationSender, request.getFilter(), null});
+        } catch (final SecurityException e) {
+            LOGGER.log(Level.WARNING, "No access to: addNotificationListener", e);
+            return new Response(request.getRequestId(), new SecurityException("Illegal access"));
+        }
+
+        // Invoke
         try {
             mBeanServer.addNotificationListener(request.getName(), notificationSender, request.getFilter(), null);
             notificationSenders.add(notificationSender);
@@ -238,7 +272,7 @@ final class ServerConnection implements Runnable {
         public void handleNotification(final javax.management.Notification notification, final Object handback) {
             LOGGER.log(Level.FINE, "Received notification");
             if (stop) {
-                // Do not sent notifications any more when the server connection
+                // Do not send notifications anymore when the server connection
                 // is stopped.
                 return;
             }
@@ -254,5 +288,4 @@ final class ServerConnection implements Runnable {
             }
         }
     }
-
 }

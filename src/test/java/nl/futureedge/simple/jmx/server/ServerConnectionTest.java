@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import javax.management.InstanceNotFoundException;
@@ -16,7 +17,8 @@ import javax.management.ListenerNotFoundException;
 import javax.management.MBeanServer;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
-import nl.futureedge.simple.jmx.authenticator.TestAuthenticator;
+import nl.futureedge.simple.jmx.access.AllAccessController;
+import nl.futureedge.simple.jmx.authenticator.PropertiesAuthenticator;
 import nl.futureedge.simple.jmx.exception.InvalidCredentialsException;
 import nl.futureedge.simple.jmx.exception.NotLoggedOnException;
 import nl.futureedge.simple.jmx.exception.UnknownRequestException;
@@ -70,7 +72,10 @@ public class ServerConnectionTest {
         Mockito.when(socket.getOutputStream()).thenReturn(outputStream);
         mBeanServer = Mockito.mock(MBeanServer.class);
 
-        subject = new ServerConnection(socket, "connectionId", new TestAuthenticator(), mBeanServer);
+        final Properties authentication = new Properties();
+        authentication.setProperty("admin", "admin");
+
+        subject = new ServerConnection(socket, "connectionId", new PropertiesAuthenticator(authentication), new AllAccessController(), mBeanServer);
     }
 
     @Test
@@ -176,7 +181,7 @@ public class ServerConnectionTest {
         //
         final Response executeROEResponse = (Response) messages.get(5);
         Assert.assertEquals(executeROE.getRequestId(), executeROEResponse.getRequestId());
-        Assert.assertEquals(NoSuchMethodException.class, executeROEResponse.getException().getClass());
+        Assert.assertEquals(SecurityException.class, executeROEResponse.getException().getClass());
 
         final Response addListenerResponse = (Response) messages.get(6);
         Assert.assertEquals(addListener.getRequestId(), addListenerResponse.getRequestId());

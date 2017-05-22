@@ -41,44 +41,44 @@ public class SimpleJmxIT {
     @Test
     public void testBase() throws Exception {
         LOGGER.log(Level.INFO, "Startup ...");
-        final ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
-                new String[]{"classpath:it-context.xml"});
-        context.registerShutdownHook();
+        try (final ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+                new String[]{"classpath:it-context.xml"})) {
+            context.registerShutdownHook();
 
-        final JMXConnectorServer testServerConnector = context.getBean("testServerConnector", JMXConnectorServer.class);
-        final int testServerConnectorPort = testServerConnector.getAddress().getPort();
+            final JMXConnectorServer testServerConnector = context.getBean("testServerConnector",
+                    JMXConnectorServer.class);
+            final int testServerConnectorPort = testServerConnector.getAddress().getPort();
 
-        // Setup client
-        final Map<String, Object> environment = new HashMap<>();
-        environment.put(JMXConnector.CREDENTIALS, new String[]{"admin", "admin"});
+            // Setup client
+            final Map<String, Object> environment = new HashMap<>();
+            environment.put(JMXConnector.CREDENTIALS, new String[]{"admin", "admin"});
 
-        LOGGER.log(Level.INFO, "Connect ...");
-        try (final JMXConnector jmxc = JMXConnectorFactory
-                .connect(new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment)) {
-            LOGGER.log(Level.INFO, "Connected ...");
-            Assert.assertNotNull(jmxc.getConnectionId());
-            final MBeanServerConnection serverConnection = jmxc.getMBeanServerConnection();
+            LOGGER.log(Level.INFO, "Connect ...");
+            try (final JMXConnector jmxc = JMXConnectorFactory.connect(
+                    new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment)) {
+                LOGGER.log(Level.INFO, "Connected ...");
+                Assert.assertNotNull(jmxc.getConnectionId());
+                final MBeanServerConnection serverConnection = jmxc.getMBeanServerConnection();
 
-            for (final ObjectName objectName : serverConnection.queryNames(null, null)) {
-                LOGGER.log(Level.INFO, "Object: {0}", objectName);
+                for (final ObjectName objectName : serverConnection.queryNames(null, null)) {
+                    LOGGER.log(Level.INFO, "Object: {0}", objectName);
+                }
+
+                final ObjectName mbeanName = new ObjectName("nl.futureedge.simple.jmx.test:name=TEST");
+                final MBeanInfo mBeanInfo = serverConnection.getMBeanInfo(mbeanName);
+                LOGGER.log(Level.INFO, "MBean info: {0}", mBeanInfo);
+                Assert.assertNotNull(mBeanInfo);
+
+                Assert.assertEquals(Integer.valueOf(42), serverConnection.getAttribute(mbeanName, "ReadonlyAttribuut"));
+                Assert.assertEquals(Integer.valueOf(10), serverConnection.getAttribute(mbeanName, "WritableAttribuut"));
+
+                serverConnection.setAttribute(mbeanName, new Attribute("WritableAttribuut", 26));
+                Assert.assertEquals(Integer.valueOf(26), serverConnection.getAttribute(mbeanName, "WritableAttribuut"));
+
+                Assert.assertEquals("All ok", serverConnection.invoke(mbeanName, "methodWithReturn", null, null));
             }
-
-            final ObjectName mbeanName = new ObjectName("nl.futureedge.simple.jmx.test:name=TEST");
-            final MBeanInfo mBeanInfo = serverConnection.getMBeanInfo(mbeanName);
-            LOGGER.log(Level.INFO, "MBean info: {0}", mBeanInfo);
-            Assert.assertNotNull(mBeanInfo);
-
-            Assert.assertEquals(Integer.valueOf(42), serverConnection.getAttribute(mbeanName, "ReadonlyAttribuut"));
-            Assert.assertEquals(Integer.valueOf(10), serverConnection.getAttribute(mbeanName, "WritableAttribuut"));
-
-            serverConnection.setAttribute(mbeanName, new Attribute("WritableAttribuut", 26));
-            Assert.assertEquals(Integer.valueOf(26), serverConnection.getAttribute(mbeanName, "WritableAttribuut"));
-
-            Assert.assertEquals("All ok", serverConnection.invoke(mbeanName, "methodWithReturn", null, null));
+            LOGGER.log(Level.INFO, "Shutdown...");
         }
-
-        LOGGER.log(Level.INFO, "Shutdown...");
-        context.close();
 
         LOGGER.log(Level.INFO, "Done...");
     }
@@ -86,62 +86,63 @@ public class SimpleJmxIT {
     @Test
     public void testNotification() throws Exception {
         LOGGER.log(Level.INFO, "Startup...");
-        final ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
-                new String[]{"classpath:it-context.xml"});
-        context.registerShutdownHook();
+        try (final ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+                new String[]{"classpath:it-context.xml"})) {
+            context.registerShutdownHook();
 
-        final JMXConnectorServer testServerConnector = context.getBean("testServerConnector", JMXConnectorServer.class);
-        final int testServerConnectorPort = testServerConnector.getAddress().getPort();
+            final JMXConnectorServer testServerConnector = context.getBean("testServerConnector",
+                    JMXConnectorServer.class);
+            final int testServerConnectorPort = testServerConnector.getAddress().getPort();
 
-        // Setup client
-        final Map<String, Object> environment = new HashMap<>();
-        environment.put(JMXConnector.CREDENTIALS, new String[]{"admin", "admin"});
+            // Setup client
+            final Map<String, Object> environment = new HashMap<>();
+            environment.put(JMXConnector.CREDENTIALS, new String[]{"admin", "admin"});
 
-        try (final JMXConnector jmxc = JMXConnectorFactory
-                .connect(new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment);
-             final JMXConnector jmxc2 = JMXConnectorFactory.connect(
-                     new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment)) {
+            try (final JMXConnector jmxc = JMXConnectorFactory.connect(
+                    new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment);
+                 final JMXConnector jmxc2 = JMXConnectorFactory.connect(
+                         new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort),
+                         environment)) {
 
-            Assert.assertNotNull(jmxc.getConnectionId());
-            Assert.assertNotNull(jmxc2.getConnectionId());
-            Assert.assertNotEquals(jmxc.getConnectionId(), jmxc2.getConnectionId());
+                Assert.assertNotNull(jmxc.getConnectionId());
+                Assert.assertNotNull(jmxc2.getConnectionId());
+                Assert.assertNotEquals(jmxc.getConnectionId(), jmxc2.getConnectionId());
 
-            final MBeanServerConnection serverConnection = jmxc.getMBeanServerConnection();
-            final MBeanServerConnection serverConnection2 = jmxc2.getMBeanServerConnection();
+                final MBeanServerConnection serverConnection = jmxc.getMBeanServerConnection();
+                final MBeanServerConnection serverConnection2 = jmxc2.getMBeanServerConnection();
 
-            for (final ObjectName objectName : serverConnection.queryNames(null, null)) {
-                LOGGER.log(Level.INFO, "Object: {0}", objectName);
+                for (final ObjectName objectName : serverConnection.queryNames(null, null)) {
+                    LOGGER.log(Level.INFO, "Object: {0}", objectName);
+                }
+
+                final ObjectName mbeanName = new ObjectName("nl.futureedge.simple.jmx.test:name=TEST");
+                final MBeanInfo mBeanInfo = serverConnection.getMBeanInfo(mbeanName);
+                LOGGER.log(Level.INFO, "MBean info: {0}", mBeanInfo);
+                Assert.assertNotNull(mBeanInfo);
+
+                final JmxListener notificationListener = new JmxListener();
+                Assert.assertEquals(0, notificationListener.getNotifications().size());
+                serverConnection2.addNotificationListener(mbeanName, notificationListener, null, null);
+
+                final JmxListener mbeanListener = context.getBean(JmxListener.class);
+                Assert.assertEquals(0, mbeanListener.getNotifications().size());
+                serverConnection2.addNotificationListener(mbeanName,
+                        new ObjectName("nl.futureedge.simple.jmx.test:name=LISTENER"), null, null);
+
+                serverConnection.setAttribute(mbeanName, new Attribute("WritableAttribuut", 26));
+                Assert.assertEquals(Integer.valueOf(26), serverConnection.getAttribute(mbeanName, "WritableAttribuut"));
+
+                Assert.assertEquals("All ok", serverConnection.invoke(mbeanName, "methodWithReturn", null, null));
+
+                TimeUnit.MILLISECONDS.sleep(1000);
+
+                Assert.assertEquals("Local listener did not receive a notification", 1,
+                        notificationListener.getNotifications().size());
+                Assert.assertEquals("Remote listener did not receive a notification", 1,
+                        mbeanListener.getNotifications().size());
             }
-
-            final ObjectName mbeanName = new ObjectName("nl.futureedge.simple.jmx.test:name=TEST");
-            final MBeanInfo mBeanInfo = serverConnection.getMBeanInfo(mbeanName);
-            LOGGER.log(Level.INFO, "MBean info: {0}", mBeanInfo);
-            Assert.assertNotNull(mBeanInfo);
-
-            final JmxListener notificationListener = new JmxListener();
-            Assert.assertEquals(0, notificationListener.getNotifications().size());
-            serverConnection2.addNotificationListener(mbeanName, notificationListener, null, null);
-
-            final JmxListener mbeanListener = context.getBean(JmxListener.class);
-            Assert.assertEquals(0, mbeanListener.getNotifications().size());
-            serverConnection2.addNotificationListener(mbeanName, new ObjectName("nl.futureedge.simple.jmx.test:name=LISTENER"),
-                    null, null);
-
-            serverConnection.setAttribute(mbeanName, new Attribute("WritableAttribuut", 26));
-            Assert.assertEquals(Integer.valueOf(26), serverConnection.getAttribute(mbeanName, "WritableAttribuut"));
-
-            Assert.assertEquals("All ok", serverConnection.invoke(mbeanName, "methodWithReturn", null, null));
-
-            TimeUnit.MILLISECONDS.sleep(1000);
-
-            Assert.assertEquals("Local listener did not receive a notification", 1,
-                    notificationListener.getNotifications().size());
-            Assert.assertEquals("Remote listener did not receive a notification", 1,
-                    mbeanListener.getNotifications().size());
+            LOGGER.log(Level.INFO, "Shutdown...");
         }
-
-        LOGGER.log(Level.INFO, "Shutdown...");
-        context.close();
 
         LOGGER.log(Level.INFO, "Done...");
     }
@@ -186,8 +187,8 @@ public class SimpleJmxIT {
 
             final Map<String, Object> environment = new HashMap<>();
             environment.put(JMXConnector.CREDENTIALS, new String[]{"admin", "admin"});
-            try (final JMXConnector jmxc = JMXConnectorFactory
-                    .newJMXConnector(new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment)) {
+            try (final JMXConnector jmxc = JMXConnectorFactory.newJMXConnector(
+                    new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment)) {
                 try {
                     jmxc.getConnectionId();
                     Assert.fail("IOException (not connected) expected");
@@ -227,10 +228,11 @@ public class SimpleJmxIT {
             environment.put(JMXConnector.CREDENTIALS, new String[]{"admin", "admin"});
 
             final Counter counter = new Counter();
-            try (final JMXConnector jmxc1 = JMXConnectorFactory
-                    .newJMXConnector(new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment);
-                 final JMXConnector jmxc2 = JMXConnectorFactory
-                         .newJMXConnector(new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment)) {
+            try (final JMXConnector jmxc1 = JMXConnectorFactory.newJMXConnector(
+                    new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment);
+                 final JMXConnector jmxc2 = JMXConnectorFactory.newJMXConnector(
+                         new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort),
+                         environment)) {
                 jmxc1.addConnectionNotificationListener(counter, null, null);
                 jmxc2.addConnectionNotificationListener(counter, null, null);
 
@@ -278,6 +280,5 @@ public class SimpleJmxIT {
             }
         }
     }
-
 
 }

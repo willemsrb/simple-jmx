@@ -38,7 +38,7 @@ final class ClientConnection {
     private String connectionId;
 
     /**
-     * Constructor.
+     * Create a new client connection.
      * @param connector client connector (to send notifications)
      * @param serviceUrl jmx service url
      * @param environment environment

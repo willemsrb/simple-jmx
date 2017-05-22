@@ -11,31 +11,53 @@
         <property name="agentId" value=""/>
     </bean>
 
-    <bean id="testServerConnector" class="org.springframework.jmx.support.ConnectorServerFactoryBean">
+    <bean id="testServerConnector"
+          class="org.springframework.jmx.support.ConnectorServerFactoryBean">
         <property name="objectName" value="connector:name=simple"/>
         <property name="serviceUrl" value="service:jmx:simple://0.0.0.0:0"/>
         <property name="environmentMap">
             <map>
                 <entry key="jmx.remote.authenticator">
-                    <bean class="nl.futureedge.simple.jmx.authenticator.TestAuthenticator"/>
+                    <bean class="nl.futureedge.simple.jmx.authenticator.PropertiesAuthenticator">
+                        <constructor-arg>
+                            <props>
+                                <prop key="admin">admin</prop>
+                                <prop key="reader">reader</prop>
+                            </props>
+                        </constructor-arg>
+                    </bean>
+                </entry>
+                <entry key="jmx.remote.accesscontroller">
+                    <bean class="nl.futureedge.simple.jmx.access.PropertiesAccessController">
+                        <constructor-arg>
+                            <props>
+                                <prop key="admin">readwrite</prop>
+                                <prop key="reader">readonly</prop>
+                            </props>
+                        </constructor-arg>
+                    </bean>
                 </entry>
             </map>
         </property>
     </bean>
 
-    <bean id="testBeanExporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false">
+    <bean id="testBeanExporter" class="org.springframework.jmx.export.MBeanExporter"
+          lazy-init="false">
         <property name="assembler" ref="testMBeanAssembler"/>
         <property name="server" ref="testMBeanServer"/>
         <property name="namingStrategy" ref="testNamingStrategy"/>
         <property name="autodetect" value="true"/>
     </bean>
 
-    <bean id="testJmsAttributeSource" class="org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource"/>
-    <bean id="testMBeanAssembler" class="org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler">
+    <bean id="testJmsAttributeSource"
+          class="org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource"/>
+    <bean id="testMBeanAssembler"
+          class="org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler">
         <property name="attributeSource" ref="testJmsAttributeSource"/>
     </bean>
 
-    <bean id="testNamingStrategy" class="org.springframework.jmx.export.naming.MetadataNamingStrategy">
+    <bean id="testNamingStrategy"
+          class="org.springframework.jmx.export.naming.MetadataNamingStrategy">
         <property name="attributeSource" ref="testJmsAttributeSource"/>
     </bean>
 

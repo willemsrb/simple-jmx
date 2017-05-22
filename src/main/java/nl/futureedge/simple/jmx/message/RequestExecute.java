@@ -14,7 +14,7 @@ public final class RequestExecute extends Request {
     private final Object[] parameterValues;
 
     /**
-     * Constructor.
+     * Create a new execute request.
      * @param methodName method name
      * @param parameterClasses parameter classes
      * @param parameterValues parameter values

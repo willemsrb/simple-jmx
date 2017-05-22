@@ -1,7 +1,6 @@
 package nl.futureedge.simple.jmx.it;
 
 import java.io.IOException;
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -51,9 +50,6 @@ public class JmxObject {
             }
 
             private void readObject(final java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-            }
-
-            private void readObjectNoData() throws ObjectStreamException {
             }
         };
     }

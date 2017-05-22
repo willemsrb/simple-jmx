@@ -21,7 +21,9 @@ public class MessageStreamTest {
 
         final MessageInputStream input = new MessageInputStream(new ByteArrayInputStream(buffer.toByteArray()));
         final RequestLogon logon = (RequestLogon) input.read();
+        Assert.assertNotNull(logon);
         final RequestLogoff logoff = (RequestLogoff) input.read();
+        Assert.assertNotNull(logoff);
         try {
             input.read();
             Assert.fail("Exception expected");

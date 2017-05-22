@@ -16,7 +16,7 @@ public final class Response implements Message {
     private final Exception exception;
 
     /**
-     * Constructor.
+     * Create a new response.
      * @param requestId unique request id for which this response is the result
      * @param result successful invocation result
      */
@@ -27,7 +27,7 @@ public final class Response implements Message {
     }
 
     /**
-     * Constructor.
+     * Create a new response.
      * @param requestId unique request id for which this response is the result
      * @param exception invocation exception
      */

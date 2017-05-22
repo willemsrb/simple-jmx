@@ -12,7 +12,7 @@ public final class Notification implements Message {
     private final javax.management.Notification theNotification;
 
     /**
-     * Constructor.
+     * Create a new notification.
      * @param notificationListenerId unique notification listener identification to identify the listener this notification is for
      * @param theNotification notification
      */

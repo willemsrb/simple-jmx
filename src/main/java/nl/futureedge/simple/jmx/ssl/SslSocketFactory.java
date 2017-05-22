@@ -43,7 +43,7 @@ public final class SslSocketFactory {
     private final SSLContext sslContext;
 
     /**
-     * Constructor.
+     * Create a new ssl socket factory.
      * @throws SslConfigurationException if an error occurs when configuring the SSL
      */
     public SslSocketFactory() throws SslConfigurationException {

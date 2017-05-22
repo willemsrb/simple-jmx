@@ -1,8 +1,6 @@
 package nl.futureedge.simple.jmx.server;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.net.SocketException;
@@ -40,7 +38,7 @@ public class ServerListenerTest {
     public void setup() throws IOException {
         mBeanServer = Mockito.mock(MBeanServer.class);
         serverConnector = new ServerConnector(new JMXServiceURL("simple", "localhost", 0), null, mBeanServer);
-        subject = new ServerListener(serverConnector, null);
+        subject = new ServerListener(serverConnector, null, null);
     }
 
     private void start() {
@@ -66,8 +64,8 @@ public class ServerListenerTest {
         final SSLSocket client = (SSLSocket) new SslSocketFactory().createSocket(serverConnector.getAddress());
         client.startHandshake();
         Assert.assertTrue(client.isConnected());
-        final OutputStream clientOutput = client.getOutputStream();
-        final InputStream clientInput = client.getInputStream();
+        Assert.assertNotNull(client.getOutputStream());
+        Assert.assertNotNull(client.getInputStream());
         client.close();
         Assert.assertFalse(subject.isStopped());
 
@@ -85,7 +83,7 @@ public class ServerListenerTest {
         socketField.setAccessible(true);
         socketField.set(subject, mockSocket);
 
-        AtomicLong counter = new AtomicLong(0);
+        final AtomicLong counter = new AtomicLong(0);
         Mockito.when(mockSocket.accept()).thenAnswer(invocation -> {
             counter.getAndIncrement();
             throw new SocketException();
@@ -113,7 +111,7 @@ public class ServerListenerTest {
         socketField.setAccessible(true);
         socketField.set(subject, mockSocket);
 
-        AtomicLong counter = new AtomicLong(0);
+        final AtomicLong counter = new AtomicLong(0);
         Mockito.when(mockSocket.accept()).thenAnswer(invocation -> {
             counter.getAndIncrement();
             throw new IOException();

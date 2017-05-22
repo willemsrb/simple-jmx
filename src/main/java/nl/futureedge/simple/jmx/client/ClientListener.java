@@ -35,7 +35,7 @@ final class ClientListener implements Runnable {
     private final Map<String, NotificationListenerData> notificationListeners = new HashMap<>();
 
     /**
-     * Constructor.
+     * Create a new client listener.
      * @param input input stream
      */
     ClientListener(final MessageInputStream input) {

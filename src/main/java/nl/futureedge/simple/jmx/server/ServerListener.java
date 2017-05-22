@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.management.remote.JMXAuthenticator;
+import nl.futureedge.simple.jmx.access.JMXAccessController;
 import nl.futureedge.simple.jmx.ssl.SslSocketFactory;
 import nl.futureedge.simple.jmx.utils.IOUtils;
 
@@ -26,6 +27,7 @@ final class ServerListener implements Runnable {
     private final AtomicInteger serverConnectionId = new AtomicInteger(1);
     private final ServerConnector serverConnector;
     private final JMXAuthenticator authenticator;
+    private final JMXAccessController accessController;
 
     private boolean stop = false;
 
@@ -33,14 +35,15 @@ final class ServerListener implements Runnable {
     private final ServerSocket serverSocket;
 
     /**
-     * Constructor.
+     * Create a new server listener.
      * @param serverConnector connector
      * @param authenticator authenticator
      * @throws IOException if an I/O error occurs when constructing the server listener
      */
-    ServerListener(final ServerConnector serverConnector, final JMXAuthenticator authenticator) throws IOException {
+    ServerListener(final ServerConnector serverConnector, final JMXAuthenticator authenticator, final JMXAccessController accessController) throws IOException {
         this.serverConnector = serverConnector;
         this.authenticator = authenticator;
+        this.accessController = accessController;
         serverId = SERVER_ID.getAndIncrement();
 
         // Setup executor service
@@ -61,7 +64,7 @@ final class ServerListener implements Runnable {
         while (!stop) {
             try {
                 LOGGER.log(Level.FINE, "Waiting for new client connection");
-                executorService.submit(new ServerConnection(serverSocket.accept(), createConnectionId(), authenticator,
+                executorService.submit(new ServerConnection(serverSocket.accept(), createConnectionId(), authenticator, accessController,
                         serverConnector.getMBeanServer()));
             } catch (final SocketException e) {
                 if (stop) {
