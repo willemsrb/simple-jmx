@@ -23,12 +23,6 @@ import nl.futureedge.simple.jmx.utils.PropertiesLoader;
  */
 public final class PropertiesLoginModule extends AbstractLoginModule {
 
-    /**
-     * Create a new properties login module.
-     */
-    public PropertiesLoginModule() {
-    }
-
     @Override
     protected List<Principal> login(final Subject subject, final CallbackHandler callbackHandler,
                           final Map<String, ?> sharedState, final Map<String, ?> options) throws LoginException {

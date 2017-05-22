@@ -7,7 +7,11 @@ import java.util.Set;
 /**
  * {@link javax.management.MBeanServerConnection} methods.
  */
-class Methods {
+final class Methods {
+
+    private Methods() {
+        throw new IllegalStateException("Do not instantiate");
+    }
 
     /**
      * Read methods.

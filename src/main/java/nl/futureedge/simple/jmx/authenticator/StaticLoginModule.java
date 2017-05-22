@@ -13,12 +13,6 @@ import javax.security.auth.login.LoginException;
 public final class StaticLoginModule extends AbstractLoginModule {
 
     /**
-     * Create a new static login module.
-     */
-    public StaticLoginModule() {
-    }
-
-    /**
      * @return the principals configured in the {@link StaticConfiguration}
      */
     @SuppressWarnings("unchecked")
