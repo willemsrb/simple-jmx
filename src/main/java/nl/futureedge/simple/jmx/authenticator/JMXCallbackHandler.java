@@ -22,12 +22,17 @@ final class JMXCallbackHandler implements CallbackHandler {
      * The first entry contains the username, the second entry contains the password.
      */
     JMXCallbackHandler(final Object credentials) throws LoginException {
-        if (!(credentials instanceof String[]) || ((String[]) credentials).length != 2) {
-            throw new LoginException("JMX Credentials should be of type String[] and have a length of 2");
-        }
+        if(credentials == null) {
+            username = null;
+            password = null;
+        } else {
+            if (!(credentials instanceof String[]) || ((String[]) credentials).length != 2) {
+                throw new LoginException("JMX Credentials should be of type String[] and have a length of 2");
+            }
 
-        username = ((String[]) credentials)[0];
-        password = ((String[]) credentials)[1];
+            username = ((String[]) credentials)[0];
+            password = ((String[]) credentials)[1];
+        }
     }
 
     /**

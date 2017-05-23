@@ -18,4 +18,9 @@ public class ExceptionsTest {
     public void unknownRequest() throws UnknownRequestException {
         throw new UnknownRequestException();
     }
+
+    @Test(expected = RequestTimedOutException.class)
+    public void requestTimedOut() throws RequestTimedOutException {
+        throw new RequestTimedOutException();
+    }
 }
