@@ -122,7 +122,8 @@ public final class PropertiesAccessController implements JMXAccessController {
         boolean unregister;
 
         public Access(final String accessString) {
-            final String[] parts = accessString.split("\\s");
+            final String normalized = accessString.replaceAll("\\s+", " ").replaceAll("\\s?,\\s?", ",").trim();
+            final String[] parts = normalized.split("\\s");
 
             boolean addCreate = false;
             for (final String part : parts) {
@@ -139,13 +140,13 @@ public final class PropertiesAccessController implements JMXAccessController {
                 } else if ("create".equals(part)) {
                     addCreate = true;
                 } else {
-                    throw new IllegalArgumentException("Invalid access configuration");
+                    throw new SecurityException("Invalid access configuration. Did not expect part: " + part);
                 }
             }
         }
 
         private static String convertClassNamePatternToPattern(final String classNamePattern) {
-            return classNamePattern.replace(".", "\\.").replaceAll("*", "[^\\.]*");
+            return classNamePattern.replace(".", "\\.").replace("*", "[^\\.]*");
         }
 
         boolean mayCreate(final String className) {
