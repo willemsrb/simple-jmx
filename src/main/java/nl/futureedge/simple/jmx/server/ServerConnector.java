@@ -11,14 +11,9 @@ import javax.management.MBeanServer;
 import javax.management.remote.JMXAuthenticator;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXServiceURL;
-import nl.futureedge.simple.jmx.access.AllAccessController;
 import nl.futureedge.simple.jmx.access.DefaultAccessController;
 import nl.futureedge.simple.jmx.access.JMXAccessController;
-import nl.futureedge.simple.jmx.access.PropertiesAccessController;
-import nl.futureedge.simple.jmx.authenticator.ExternalAuthenticator;
-import nl.futureedge.simple.jmx.authenticator.PropertiesAuthenticator;
 import nl.futureedge.simple.jmx.authenticator.StaticAuthenticator;
-import nl.futureedge.simple.jmx.utils.PropertiesFileLoader;
 
 /**
  * Server connector.
@@ -80,23 +75,9 @@ final class ServerConnector extends JMXConnectorServer {
 
     private JMXAuthenticator determineAuthenticator(final Map<String, ?> environment) {
         // Custom authenticator via the environment
-        final JMXAuthenticator custom = (JMXAuthenticator) environment.get(JMXConnectorServer.AUTHENTICATOR);
+        final JMXAuthenticator custom = (JMXAuthenticator) environment.get(Environment.KEY_AUTHENTICATOR);
         if (custom != null) {
             return custom;
-        }
-
-        // External JAAS configuration via System property or environment
-        final String sunLoginConfig = System.getProperty("com.sun.management.jmxremote.login.config",
-                (String) environment.get("jmx.remote.x.login.config"));
-        if (sunLoginConfig != null && !"".equals(sunLoginConfig)) {
-            return new ExternalAuthenticator(sunLoginConfig);
-        }
-
-        // Property file based authentication via System property or environment
-        final String sunPasswordFile = System.getProperty("com.sun.management.jmxremote.password.file",
-                (String) environment.get("jmx.remote.x.password.file"));
-        if (sunPasswordFile != null && !"".equals(sunPasswordFile)) {
-            return new PropertiesAuthenticator(new PropertiesFileLoader(sunPasswordFile));
         }
 
         // Default: no authentication
@@ -105,21 +86,9 @@ final class ServerConnector extends JMXConnectorServer {
 
     private JMXAccessController determineAccessController(final Map<String, ?> environment) {
         // Custom access control via the environment
-        final JMXAccessController custom = (JMXAccessController) environment.get("jmx.remote.accesscontroller");
+        final JMXAccessController custom = (JMXAccessController) environment.get(Environment.KEY_ACCESSCONTROLLER);
         if (custom != null) {
             return custom;
-        }
-
-        // Property file based access control via System property or environment
-        final String accessFile = System.getProperty("com.sun.management.jmxremote.access.file",
-                (String) environment.get("jmx.remote.x.access.file"));
-        if (accessFile != null && !"".equals(accessFile)) {
-            return new PropertiesAccessController(new PropertiesFileLoader(accessFile));
-        }
-
-        // All access via environment
-        if ("all".equals(environment.get("jmx.remote.x.access.type"))) {
-            return new AllAccessController();
         }
 
         // Default: readonly access
