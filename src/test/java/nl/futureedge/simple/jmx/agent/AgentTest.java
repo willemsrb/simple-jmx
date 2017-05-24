@@ -24,10 +24,8 @@ public class AgentTest {
 
     @Test
     public void test() throws IOException {
-        int port = getPort();
-        System.setProperty(Agent.SYSTEM_PROPERTY_PORT, Integer.toString(port));
-
-        Agent.premain(null);
+        final int port = getPort();
+        Agent.premain("host=0.0.0.0,port="+Integer.toString(port));
 
         try (final JMXConnector jmxc = JMXConnectorFactory.connect(new JMXServiceURL(SimpleJmx.PROTOCOL, "0.0.0.0", port), null)) {
             Assert.assertNotNull(jmxc.getConnectionId());

@@ -24,11 +24,15 @@ public class Agent {
 
     private static final Logger LOGGER = Logger.getLogger(Agent.class.getName());
 
-    public static final String SYSTEM_PROPERY_HOST = "nl.futureedge.simple.jmx.host";
-    public static final String SYSTEM_PROPERTY_PORT = "nl.futureedge.simple.jmx.port";
-    public static final String SYSTEM_PROPERTY_LOGIN_CONFIG = "nl.futureedge.simple.jmx.login.config";
-    public static final String SYSTEM_PROPERTY_PASSWORD_FILE = "nl.futureedge.simple.jmx.password.file";
-    public static final String SYSTEM_PROPERTY_ACCESS_FILE = "nl.futureedge.simple.jmx.access.file";
+    public static final String ARGUMENT_HOST = "host";
+    public static final String ARGUMENT_PORT = "port";
+    public static final String ARGUMENT_LOGIN_CONFIG = "login.config";
+    public static final String ARGUMENT_PASSWORD_FILE = "password.file";
+    public static final String ARGUMENT_ACCESS_FILE = "access.file";
+
+    private Agent() {
+        throw new IllegalStateException("Do not instantiate");
+    }
 
     /**
      * Starting point when used as a java agent loaded at startup
@@ -46,30 +50,26 @@ public class Agent {
      */
     public static void agentmain(final String agentArgs) throws IOException {
         LOGGER.log(Level.FINE, "Configuring Simple-JMX server connector");
+        Map<String,String> arguments = ArgumentSplitter.split(agentArgs);
 
         // Connection
-        final String host = System.getProperty(SYSTEM_PROPERY_HOST, "0.0.0.0");
-        final int port = Integer.parseInt(System.getProperty(SYSTEM_PROPERTY_PORT, "3481"));
-        JMXServiceURL url = new JMXServiceURL(SimpleJmx.PROTOCOL, host, port);
+        final String host = arguments.getOrDefault(ARGUMENT_HOST, "0.0.0.0");
+        final int port = Integer.parseInt(arguments.getOrDefault(ARGUMENT_PORT, "3481"));
+        final JMXServiceURL url = new JMXServiceURL(SimpleJmx.PROTOCOL, host, port);
 
         // Environment
         final Map<String, Object> environment = new HashMap<>();
 
         // Environment - authentication
-        final String loginConfig = System.getProperty(SYSTEM_PROPERTY_LOGIN_CONFIG);
-        if (loginConfig != null && !"".equals(loginConfig)) {
-            environment.put(Environment.KEY_AUTHENTICATOR, new ExternalAuthenticator(loginConfig));
-        } else {
-            final String passwordFile = System.getProperty(SYSTEM_PROPERTY_PASSWORD_FILE);
-            if (passwordFile != null && !"".equals(passwordFile)) {
-                environment.put(Environment.KEY_AUTHENTICATOR, new PropertiesAuthenticator(new PropertiesFileLoader(passwordFile)));
-            }
+        if (arguments.containsKey(ARGUMENT_LOGIN_CONFIG)) {
+            environment.put(Environment.KEY_AUTHENTICATOR, new ExternalAuthenticator(arguments.get(ARGUMENT_LOGIN_CONFIG)));
+        } else if(arguments.containsKey(ARGUMENT_PASSWORD_FILE)) {
+            environment.put(Environment.KEY_AUTHENTICATOR, new PropertiesAuthenticator(new PropertiesFileLoader(arguments.get(ARGUMENT_PASSWORD_FILE))));
         }
 
         // Environment - access control
-        final String accessFile = System.getProperty(SYSTEM_PROPERTY_ACCESS_FILE);
-        if (accessFile != null && !"".equals(accessFile)) {
-            environment.put(Environment.KEY_ACCESSCONTROLLER, new PropertiesAccessController(new PropertiesFileLoader(accessFile)));
+        if (arguments.containsKey(ARGUMENT_ACCESS_FILE)) {
+            environment.put(Environment.KEY_ACCESSCONTROLLER, new PropertiesAccessController(new PropertiesFileLoader(arguments.get(ARGUMENT_ACCESS_FILE))));
         }
 
         // MBean server
