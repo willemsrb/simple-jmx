@@ -25,6 +25,7 @@ public final class SystemSslSocketFactory implements JMXSocketFactory {
 
     /**
      * Create a new system socket factory.
+     * @throws SslConfigurationException if an SSL error occurs when creating the socket factory
      */
     public SystemSslSocketFactory() throws SslConfigurationException {
         try {

@@ -20,6 +20,7 @@ final class StaticConfiguration extends AbstractConfiguration {
     /**
      * Create a new configuration.
      * @param name name
+     * @principals principals to add to each subject
      */
     StaticConfiguration(final String name, final Principal... principals) {
         super(name, createEntries(principals));

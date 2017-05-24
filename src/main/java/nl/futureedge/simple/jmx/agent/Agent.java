@@ -33,6 +33,7 @@ public class Agent {
     /**
      * Starting point when used as a java agent loaded at startup
      * @param agentArgs arguments
+     * @throws IOException when an I/O error occurs starting the jmx connector server.
      */
     public static void premain(final String agentArgs) throws IOException {
         agentmain(agentArgs);
@@ -41,6 +42,7 @@ public class Agent {
     /**
      * Starting point when used as a java agent loaded after startup
      * @param agentArgs argument
+     * @throws IOException when an I/O error occurs starting the jmx connector server.
      */
     public static void agentmain(final String agentArgs) throws IOException {
         LOGGER.log(Level.FINE, "Configuring Simple-JMX server connector");

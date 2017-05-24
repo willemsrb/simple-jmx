@@ -1,7 +1,6 @@
 package nl.futureedge.simple.jmx.socket;
 
 
-import com.sun.corba.se.impl.legacy.connection.DefaultSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -26,7 +25,7 @@ import javax.net.ssl.TrustManager;
 public final class AnonymousSslSocketFactory implements JMXSocketFactory {
 
     private static final int BACKLOG = 50;
-    private static final Logger LOGGER = Logger.getLogger(DefaultSocketFactory.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(AnonymousSslSocketFactory.class.getName());
 
     private static final String[] TLS_ALLOWED_PROTOCOLS = {"TLSv1.2",};
 
@@ -41,6 +40,7 @@ public final class AnonymousSslSocketFactory implements JMXSocketFactory {
 
     /**
      * Create a new ssl socket factory.
+     * @throws SslConfigurationException if an SSL error occurs when creating the socket factory
      */
     public AnonymousSslSocketFactory() throws SslConfigurationException {
         try {

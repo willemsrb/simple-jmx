@@ -93,7 +93,7 @@ public class ServerListenerTest {
         Assert.assertFalse(subject.isStopped());
 
         // Let it fail a couple of time
-        Awaitility.await().atMost(3, TimeUnit.SECONDS).until(() -> counter.get() > 5);
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(() -> counter.get() > 5);
         Assert.assertFalse(subject.isStopped());
 
         subject.stop();
@@ -121,7 +121,7 @@ public class ServerListenerTest {
         Assert.assertFalse(subject.isStopped());
 
         // Let it fail a couple of time
-        Awaitility.await().atMost(3, TimeUnit.SECONDS).until(() -> counter.get() > 5);
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(() -> counter.get() > 5);
         Assert.assertFalse(subject.isStopped());
 
         subject.stop();
