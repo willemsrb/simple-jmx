@@ -11,7 +11,7 @@ import java.util.logging.LogManager;
 import javax.management.MBeanServer;
 import javax.management.remote.JMXServiceURL;
 import javax.net.ssl.SSLSocket;
-import nl.futureedge.simple.jmx.ssl.SslSocketFactory;
+import nl.futureedge.simple.jmx.socket.AnonymousSslSocketFactory;
 import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
@@ -38,7 +38,7 @@ public class ServerListenerTest {
     public void setup() throws IOException {
         mBeanServer = Mockito.mock(MBeanServer.class);
         serverConnector = new ServerConnector(new JMXServiceURL("simple", "localhost", 0), null, mBeanServer);
-        subject = new ServerListener(serverConnector, null, null);
+        subject = new ServerListener(serverConnector, new AnonymousSslSocketFactory(), null, null);
     }
 
     private void start() {
@@ -61,7 +61,7 @@ public class ServerListenerTest {
 
         start();
 
-        final SSLSocket client = (SSLSocket) new SslSocketFactory().createSocket(serverConnector.getAddress());
+        final SSLSocket client = (SSLSocket) new AnonymousSslSocketFactory().createSocket(serverConnector.getAddress());
         client.startHandshake();
         Assert.assertTrue(client.isConnected());
         Assert.assertNotNull(client.getOutputStream());

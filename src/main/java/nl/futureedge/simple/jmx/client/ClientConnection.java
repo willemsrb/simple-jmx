@@ -2,18 +2,16 @@ package nl.futureedge.simple.jmx.client;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.management.NotificationListener;
 import javax.management.remote.JMXConnectionNotification;
-import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
 import nl.futureedge.simple.jmx.message.Request;
 import nl.futureedge.simple.jmx.message.RequestLogoff;
 import nl.futureedge.simple.jmx.message.RequestLogon;
 import nl.futureedge.simple.jmx.message.Response;
-import nl.futureedge.simple.jmx.ssl.SslSocketFactory;
+import nl.futureedge.simple.jmx.socket.JMXSocketFactory;
 import nl.futureedge.simple.jmx.stream.MessageInputStream;
 import nl.futureedge.simple.jmx.stream.MessageOutputStream;
 import nl.futureedge.simple.jmx.utils.IOUtils;
@@ -26,8 +24,10 @@ final class ClientConnection {
     private static final Logger LOGGER = Logger.getLogger(ClientConnection.class.getName());
 
     private final ClientConnector connector;
+    private final JMXSocketFactory socketFactory;
     private final JMXServiceURL serviceUrl;
-    private final Map<String, ?> environment;
+    private final Object credentials;
+    private final int requestTimeout;
 
     private Socket socket;
     private MessageOutputStream output;
@@ -41,12 +41,13 @@ final class ClientConnection {
      * Create a new client connection.
      * @param connector client connector (to send notifications)
      * @param serviceUrl jmx service url
-     * @param environment environment
      */
-    ClientConnection(final ClientConnector connector, final JMXServiceURL serviceUrl, final Map<String, ?> environment) {
+    ClientConnection(final ClientConnector connector, JMXSocketFactory socketFactory, final JMXServiceURL serviceUrl, Object credentials, int requestTimeout) {
         this.connector = connector;
+        this.socketFactory = socketFactory;
         this.serviceUrl = serviceUrl;
-        this.environment = environment;
+        this.credentials = credentials;
+        this.requestTimeout = requestTimeout;
     }
 
     /**
@@ -68,19 +69,19 @@ final class ClientConnection {
     void connect() throws IOException {
         LOGGER.log(Level.FINE, "Connecting to {0}:{1,number,#####} ...",
                 new Object[]{serviceUrl.getHost(), serviceUrl.getPort()});
-        socket = new SslSocketFactory().createSocket(serviceUrl);
+        socket = socketFactory.createSocket(serviceUrl);
 
         // The socket InputStream and OutputStream are not closed directly. They
         // are shutdown and closed via method calls on the socket itself.
         output = new MessageOutputStream(socket.getOutputStream());
 
         LOGGER.log(Level.FINE, "Starting receiver");
-        clientListener = new ClientListener(new MessageInputStream(socket.getInputStream()));
+        clientListener = new ClientListener(new MessageInputStream(socket.getInputStream()), requestTimeout);
         clientListenerThread = new Thread(clientListener, "jmx-client-receiver");
         clientListenerThread.start();
 
         LOGGER.log(Level.FINE, "Sending logon request");
-        final RequestLogon logon = new RequestLogon(environment.get(JMXConnector.CREDENTIALS));
+        final RequestLogon logon = new RequestLogon(credentials);
 
         LOGGER.log(Level.FINE, "Handling logon response");
         final Response logonResponse = handleRequest(logon);

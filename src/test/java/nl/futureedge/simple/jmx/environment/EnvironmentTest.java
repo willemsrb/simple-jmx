@@ -1,4 +1,4 @@
-package nl.futureedge.simple.jmx.server;
+package nl.futureedge.simple.jmx.environment;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -18,5 +18,7 @@ public class EnvironmentTest {
             Assert.assertEquals(IllegalStateException.class, e.getCause().getClass());
         }
     }
+
+
 
 }

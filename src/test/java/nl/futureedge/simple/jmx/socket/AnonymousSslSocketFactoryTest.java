@@ -1,4 +1,4 @@
-package nl.futureedge.simple.jmx.ssl;
+package nl.futureedge.simple.jmx.socket;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -8,11 +8,11 @@ import javax.management.remote.JMXServiceURL;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class SslSocketFactoryTest {
+public class AnonymousSslSocketFactoryTest {
 
     @Test
     public void ok() throws IOException {
-        final SslSocketFactory factory = new SslSocketFactory();
+        final AnonymousSslSocketFactory factory = new AnonymousSslSocketFactory();
         final ServerSocket serverSocket = factory.createServerSocket(new JMXServiceURL("simple", "localhost", 0));
         factory.createSocket(new JMXServiceURL("simple", "localhost", serverSocket.getLocalPort()));
     }
@@ -22,7 +22,7 @@ public class SslSocketFactoryTest {
      */
     @Test
     public void invalidTlsProtocol() throws IOException, ReflectiveOperationException {
-        final Field allowedProtocols = SslSocketFactory.class.getDeclaredField("TLS_ALLOWED_PROTOCOLS");
+        final Field allowedProtocols = AnonymousSslSocketFactory.class.getDeclaredField("TLS_ALLOWED_PROTOCOLS");
         allowedProtocols.setAccessible(true);
 
         final Field allowedProtocolsModifiers = Field.class.getDeclaredField("modifiers");
@@ -34,9 +34,9 @@ public class SslSocketFactoryTest {
         try {
             allowedProtocols.set(null, new String[]{"INVALIDv5.7",});
             try {
-                new SslSocketFactory();
+                new AnonymousSslSocketFactory();
                 Assert.fail("SslConfigurationException expected");
-            } catch (final SslSocketFactory.SslConfigurationException e) {
+            } catch (final SslConfigurationException e) {
                 // Expected
             }
         } finally {
@@ -49,8 +49,8 @@ public class SslSocketFactoryTest {
      * Evil reflection.
      */
     @Test
-    public void invalidTlsCiphersuites() throws IOException, ReflectiveOperationException {
-        final Field allowedCiphersuites = SslSocketFactory.class.getDeclaredField("TLS_ALLOWED_CIPHERSUITES");
+    public void invalidAnonymousCiphersuites() throws IOException, ReflectiveOperationException {
+        final Field allowedCiphersuites = AnonymousSslSocketFactory.class.getDeclaredField("ANONYMOUS_CIPHERSUITES");
         allowedCiphersuites.setAccessible(true);
 
         final Field allowedCiphersuitesModifiers = Field.class.getDeclaredField("modifiers");
@@ -62,9 +62,12 @@ public class SslSocketFactoryTest {
         try {
             allowedCiphersuites.set(null, new String[]{"TLS_INVALID_WITH_SHA257", "TLS_INVALID_WITH_SHA258",});
 
-            final SslSocketFactory factory = new SslSocketFactory();
-            factory.createServerSocket(new JMXServiceURL("simple", "localhost", 0));
-            // Should not throw an exception, will not work runtime though
+            try {
+                new AnonymousSslSocketFactory();
+                Assert.fail("SslConfigurationException expected");
+            } catch (final SslConfigurationException e) {
+                // Expected
+            }
         } finally {
             allowedCiphersuites.set(null, originalValue);
         }

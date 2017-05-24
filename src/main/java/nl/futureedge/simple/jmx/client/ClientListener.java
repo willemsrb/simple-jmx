@@ -23,10 +23,8 @@ final class ClientListener implements Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(ClientListener.class.getName());
 
-    // TODO: Make timeout configurable
-    private static final int TIMEOUT = 3;
-
     private final MessageInputStream input;
+    private final int requestTimeout;
     private boolean stop = false;
 
     // FIXME: Potential area for memory leak
@@ -38,8 +36,9 @@ final class ClientListener implements Runnable {
      * Create a new client listener.
      * @param input input stream
      */
-    ClientListener(final MessageInputStream input) {
+    ClientListener(final MessageInputStream input, int requestTimeout) {
         this.input = input;
+        this.requestTimeout = requestTimeout;
     }
 
     /**
@@ -121,7 +120,7 @@ final class ClientListener implements Runnable {
         }
 
         synchronized (requests) {
-            final FutureResponse result = new FutureResponse();
+            final FutureResponse result = new FutureResponse(requestTimeout);
             requests.put(request.getRequestId(), result);
             return result;
         }
@@ -180,7 +179,13 @@ final class ClientListener implements Runnable {
     static final class FutureResponse {
 
         private final CountDownLatch latch = new CountDownLatch(1);
+        private final int requestTimeout;
+
         private Response response;
+
+        FutureResponse(final int requestTimeout) {
+            this.requestTimeout=requestTimeout;
+        }
 
         /**
          * Signal that the response has been received.
@@ -198,7 +203,7 @@ final class ClientListener implements Runnable {
          */
         Response getResponse() throws IOException {
             try {
-                if (latch.await(TIMEOUT, TimeUnit.SECONDS)) {
+                if (latch.await(requestTimeout, TimeUnit.SECONDS)) {
                     return response;
                 } else {
                     throw new RequestTimedOutException();

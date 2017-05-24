@@ -11,7 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.management.remote.JMXAuthenticator;
 import nl.futureedge.simple.jmx.access.JMXAccessController;
-import nl.futureedge.simple.jmx.ssl.SslSocketFactory;
+import nl.futureedge.simple.jmx.socket.JMXSocketFactory;
 import nl.futureedge.simple.jmx.utils.IOUtils;
 
 /**
@@ -40,7 +40,8 @@ final class ServerListener implements Runnable {
      * @param authenticator authenticator
      * @throws IOException if an I/O error occurs when constructing the server listener
      */
-    ServerListener(final ServerConnector serverConnector, final JMXAuthenticator authenticator, final JMXAccessController accessController) throws IOException {
+    ServerListener(final ServerConnector serverConnector, final JMXSocketFactory socketFactory, final JMXAuthenticator authenticator,
+                   final JMXAccessController accessController) throws IOException {
         this.serverConnector = serverConnector;
         this.authenticator = authenticator;
         this.accessController = accessController;
@@ -51,7 +52,7 @@ final class ServerListener implements Runnable {
         executorService = Executors.newCachedThreadPool(threadFactory);
 
         // Setup server socket
-        serverSocket = new SslSocketFactory().createServerSocket(serverConnector.getAddress());
+        serverSocket = socketFactory.createServerSocket(serverConnector.getAddress());
         serverConnector.updateAddress(serverSocket.getLocalPort());
     }
 

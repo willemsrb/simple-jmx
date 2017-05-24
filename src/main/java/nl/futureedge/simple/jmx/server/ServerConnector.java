@@ -11,9 +11,9 @@ import javax.management.MBeanServer;
 import javax.management.remote.JMXAuthenticator;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXServiceURL;
-import nl.futureedge.simple.jmx.access.DefaultAccessController;
 import nl.futureedge.simple.jmx.access.JMXAccessController;
-import nl.futureedge.simple.jmx.authenticator.StaticAuthenticator;
+import nl.futureedge.simple.jmx.environment.Environment;
+import nl.futureedge.simple.jmx.socket.JMXSocketFactory;
 
 /**
  * Server connector.
@@ -68,33 +68,13 @@ final class ServerConnector extends JMXConnectorServer {
             return;
         }
 
-        serverListener = new ServerListener(this, determineAuthenticator(environment), determineAccessController(environment));
+        final JMXSocketFactory socketFactory = Environment.determineSocketFactory(environment);
+        final JMXAuthenticator authenticator = Environment.determineAuthenticator(environment);
+        final JMXAccessController accessController = Environment.determineAccessController(environment);
+        serverListener = new ServerListener(this, socketFactory, authenticator, accessController);
         serverListenerThread = new Thread(serverListener, "simple-jmx-server-" + serverListener.getServerId());
         serverListenerThread.start();
     }
-
-    private JMXAuthenticator determineAuthenticator(final Map<String, ?> environment) {
-        // Custom authenticator via the environment
-        final JMXAuthenticator custom = (JMXAuthenticator) environment.get(Environment.KEY_AUTHENTICATOR);
-        if (custom != null) {
-            return custom;
-        }
-
-        // Default: no authentication
-        return new StaticAuthenticator();
-    }
-
-    private JMXAccessController determineAccessController(final Map<String, ?> environment) {
-        // Custom access control via the environment
-        final JMXAccessController custom = (JMXAccessController) environment.get(Environment.KEY_ACCESSCONTROLLER);
-        if (custom != null) {
-            return custom;
-        }
-
-        // Default: readonly access
-        return new DefaultAccessController();
-    }
-
 
     @Override
     public void stop() throws IOException {

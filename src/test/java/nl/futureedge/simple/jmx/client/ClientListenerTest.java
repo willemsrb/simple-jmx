@@ -29,7 +29,7 @@ public class ClientListenerTest {
     }
 
     private final TestInputStream input = new TestInputStream();
-    private final ClientListener subject = new ClientListener(new MessageInputStream(input));
+    private final ClientListener subject = new ClientListener(new MessageInputStream(input), 3);
     private final Thread subjectThread = new Thread(subject);
 
     @Before

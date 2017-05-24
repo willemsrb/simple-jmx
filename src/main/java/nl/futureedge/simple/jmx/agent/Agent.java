@@ -13,7 +13,7 @@ import nl.futureedge.simple.jmx.SimpleJmx;
 import nl.futureedge.simple.jmx.access.PropertiesAccessController;
 import nl.futureedge.simple.jmx.authenticator.ExternalAuthenticator;
 import nl.futureedge.simple.jmx.authenticator.PropertiesAuthenticator;
-import nl.futureedge.simple.jmx.server.Environment;
+import nl.futureedge.simple.jmx.environment.Environment;
 import nl.futureedge.simple.jmx.server.ServerProvider;
 import nl.futureedge.simple.jmx.utils.PropertiesFileLoader;
 

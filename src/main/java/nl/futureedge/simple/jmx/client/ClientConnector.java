@@ -16,6 +16,8 @@ import javax.management.remote.JMXConnectionNotification;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
 import javax.security.auth.Subject;
+import nl.futureedge.simple.jmx.environment.Environment;
+import nl.futureedge.simple.jmx.socket.JMXSocketFactory;
 
 /**
  * JMX Client connector.
@@ -69,10 +71,13 @@ final class ClientConnector implements JMXConnector {
                 environment.putAll(connectEnvironment);
             }
 
-            LOGGER.log(Level.FINE, "Creating new client connection");
-            clientConnection = new ClientConnection(this, serviceUrl, environment);
+            LOGGER.log(Level.FINE, "Creating client connection");
+            final JMXSocketFactory socketFactory  = Environment.determineSocketFactory(environment);
+            final Object credentials = Environment.determineCredentials(environment);
+            final int requestTimeout = Environment.determineRequestTimeout(environment);
+            clientConnection = new ClientConnection(this, socketFactory, serviceUrl, credentials, requestTimeout);
             try {
-                LOGGER.log(Level.FINE, "Creating new client connection");
+                LOGGER.log(Level.FINE, "Connecting client connection");
                 clientConnection.connect();
             } catch (final RuntimeException | IOException e) {
                 LOGGER.log(Level.FINE, "Exception during connect", e);
@@ -83,7 +88,7 @@ final class ClientConnector implements JMXConnector {
                 throw e;
             }
         }
-        LOGGER.log(Level.FINE, "Connected");
+        LOGGER.log(Level.FINE, "Client connection connected");
     }
 
     @Override
@@ -101,7 +106,7 @@ final class ClientConnector implements JMXConnector {
 
     @Override
     public MBeanServerConnection getMBeanServerConnection(final Subject subject) throws IOException {
-        // TODO: handle subject
+        // TODO: handle subject delegation
         if (clientConnection == null) {
             throw new IOException("Not connected");
         }

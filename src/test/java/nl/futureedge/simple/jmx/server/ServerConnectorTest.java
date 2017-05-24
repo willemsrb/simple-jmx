@@ -12,6 +12,7 @@ import nl.futureedge.simple.jmx.access.DefaultAccessController;
 import nl.futureedge.simple.jmx.access.JMXAccessController;
 import nl.futureedge.simple.jmx.authenticator.PropertiesAuthenticator;
 import nl.futureedge.simple.jmx.authenticator.StaticAuthenticator;
+import nl.futureedge.simple.jmx.environment.Environment;
 import nl.futureedge.simple.jmx.utils.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
