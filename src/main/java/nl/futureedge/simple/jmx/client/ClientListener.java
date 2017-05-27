@@ -27,8 +27,10 @@ final class ClientListener implements Runnable {
     private final int requestTimeout;
     private boolean stop = false;
 
-    // FIXME: Potential area for memory leak
-    // if no response is ever received the request-id and waiter will be registered for ever)
+    // This looks like a potential area for a memory leak if no response is ever received the request-id
+    // and waiter will be registered for ever. However this seems very unlikely as the TCP protocol is
+    // reliable and an answer should always be received (even if it is later than the client timeout).
+    // If the server connection is dropped the whole client connection will be stopped and discarded.
     private final Map<String, FutureResponse> requests = new HashMap<>();
     private final Map<String, NotificationListenerData> notificationListeners = new HashMap<>();
 

@@ -70,6 +70,7 @@ final class ClientConnection {
         LOGGER.log(Level.FINE, "Connecting to {0}:{1,number,#####} ...",
                 new Object[]{serviceUrl.getHost(), serviceUrl.getPort()});
         socket = socketFactory.createSocket(serviceUrl);
+        socket.setSoTimeout(0);
 
         // The socket InputStream and OutputStream are not closed directly. They
         // are shutdown and closed via method calls on the socket itself.

@@ -54,6 +54,7 @@ final class ServerListener implements Runnable {
         // Setup server socket
         serverSocket = socketFactory.createServerSocket(serverConnector.getAddress());
         serverConnector.updateAddress(serverSocket.getLocalPort());
+        serverSocket.setSoTimeout(0);
     }
 
     int getServerId() {

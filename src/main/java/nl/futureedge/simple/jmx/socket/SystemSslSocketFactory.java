@@ -51,6 +51,7 @@ public final class SystemSslSocketFactory implements JMXSocketFactory {
     public Socket createSocket(final JMXServiceURL serviceUrl) throws IOException {
         final SSLSocket baseSslSocket = (SSLSocket) sslContext.getSocketFactory().createSocket(serviceUrl.getHost(),
                 serviceUrl.getPort());
+        baseSslSocket.setKeepAlive(true);
 
         LOGGER.log(Level.FINE, "Created client socket");
         return baseSslSocket;

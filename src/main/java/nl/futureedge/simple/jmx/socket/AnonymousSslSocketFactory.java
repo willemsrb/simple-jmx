@@ -99,6 +99,7 @@ public final class AnonymousSslSocketFactory implements JMXSocketFactory {
                 serviceUrl.getPort());
         baseSslSocket.setEnabledProtocols(enabledProtocols);
         baseSslSocket.setEnabledCipherSuites(enabledCiphersuites);
+        baseSslSocket.setKeepAlive(true);
 
         LOGGER.log(Level.FINE, "Created client socket");
         return baseSslSocket;
