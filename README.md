@@ -1,4 +1,4 @@
-# Simple JMX [![Build Status](https://travis-ci.org/willemsrb/simple-jmx.svg?branch=master)](https://travis-ci.org/willemsrb/simple-jmx) [![Quality Gate](https://sonarqube.com/api/badges/gate?key=nl.future-edge:simple-jmx)](https://sonarqube.com/dashboard/index?id=nl.future-edge%3Asimple-jmx)
+# Simple JMX [![Build Status](https://travis-ci.org/willemsrb/simple-jmx.svg?branch=master)](https://travis-ci.org/willemsrb/simple-jmx) [![Quality Gate](https://sonarqube.com/api/badges/gate?key=nl.future-edge:simple-jmx)](https://sonarqube.com/dashboard/index?id=nl.future-edge%3Asimple-jmx) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/nl.future-edge/simple-jmx/badge.svg)](https://maven-badges.herokuapp.com/maven-central/nl.future-edge/simple-jmx)
 *Simple JMX protocol that works without RMI.*
 
 Have you ever created a java application running in a Docker container and wanted to connect using JMX? Have you ever struggled configuring JMX to work through a firewall? Then you have probably cursed the RMI protocol for sending a server and a data port to the client, slamming into your firewall or completely ignoring your Docker port mapping.
