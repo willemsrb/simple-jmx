@@ -24,13 +24,13 @@ public class PropertiesAccessControllerTest {
         LogManager.getLogManager().getLogger("").setLevel(Level.FINEST);
     }
 
-    private Subject nothing = createSubject("nothing");
-    private Subject reader = createSubject("reader");
-    private Subject writer = createSubject("writer");
-    private Subject creatorSpecific = createSubject("creatorSpecific");
-    private Subject creatorWildcard = createSubject("creatorWildcard");
-    private Subject unregistar = createSubject("unregistar");
-    private Subject admin = createSubject("admin");
+    private final Subject nothing = createSubject("nothing");
+    private final Subject reader = createSubject("reader");
+    private final Subject writer = createSubject("writer");
+    private final Subject creatorSpecific = createSubject("creatorSpecific");
+    private final Subject creatorWildcard = createSubject("creatorWildcard");
+    private final Subject unregistar = createSubject("unregistar");
+    private final Subject admin = createSubject("admin");
 
     private static Subject createSubject(final String name) {
         final Set<Principal> principals = new HashSet<>();
@@ -53,11 +53,11 @@ public class PropertiesAccessControllerTest {
         propertiesAccessController = new PropertiesAccessController(acl);
     }
 
-    private void check(boolean shouldHaveAccess, Subject subject, String methodName, Object[] parameterValues) {
+    private void check(final boolean shouldHaveAccess, final Subject subject, final String methodName, final Object[] parameterValues) {
         try {
             propertiesAccessController.checkAccess(subject, methodName, parameterValues);
             Assert.assertTrue("Should throw a SecurityException", shouldHaveAccess);
-        } catch (SecurityException e) {
+        } catch (final SecurityException e) {
             e.printStackTrace();
             Assert.assertFalse("Should not throw a SecurityException", shouldHaveAccess);
         }

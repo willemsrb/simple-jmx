@@ -72,7 +72,7 @@ final class ClientConnector implements JMXConnector {
             }
 
             LOGGER.log(Level.FINE, "Creating client connection");
-            final JMXSocketFactory socketFactory  = Environment.determineSocketFactory(environment);
+            final JMXSocketFactory socketFactory = Environment.determineSocketFactory(environment);
             final Object credentials = Environment.determineCredentials(environment);
             final int requestTimeout = Environment.determineRequestTimeout(environment);
             clientConnection = new ClientConnection(this, socketFactory, serviceUrl, credentials, requestTimeout);

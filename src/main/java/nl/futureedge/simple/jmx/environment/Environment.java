@@ -32,7 +32,7 @@ public final class Environment {
     public static final String KEY_CREDENTIALS = JMXConnector.CREDENTIALS;
 
 
-    public static JMXSocketFactory determineSocketFactory(Map<String, ?> environment) throws IOException {
+    public static JMXSocketFactory determineSocketFactory(final Map<String, ?> environment) throws IOException {
         // Custom socket factory via the environment
         final JMXSocketFactory custom = (JMXSocketFactory) environment.get(KEY_SOCKETFACTORY);
         if (custom != null) {
@@ -42,7 +42,7 @@ public final class Environment {
         // Default: no authentication
         try {
             return new AnonymousSslSocketFactory();
-        } catch(SslConfigurationException e) {
+        } catch (final SslConfigurationException e) {
             throw new IOException("Could not create default socket factory", e);
         }
     }
@@ -76,12 +76,12 @@ public final class Environment {
 
     public static int determineRequestTimeout(final Map<String, ?> environment) {
         final Object timeout = environment.get(KEY_REQUESTTIMEOUT);
-        if(timeout instanceof Number) {
+        if (timeout instanceof Number) {
             // Custom timeout
             return ((Number) timeout).intValue();
-        } else if(timeout instanceof String) {
+        } else if (timeout instanceof String) {
             // Custom timeout
-            return Integer.parseInt((String)timeout);
+            return Integer.parseInt((String) timeout);
         } else if (timeout == null) {
             // Default: 3 seconds
             return 3;

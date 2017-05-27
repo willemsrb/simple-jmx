@@ -23,7 +23,7 @@ public class PropertiesAuthenticatorTest {
 
     @Test
     public void test() {
-        Subject subject = authenticator.authenticate(new String[]{"admin", "admin"});
+        final Subject subject = authenticator.authenticate(new String[]{"admin", "admin"});
         Assert.assertNotNull(subject);
         Assert.assertEquals(1, subject.getPrincipals().size());
         Assert.assertEquals("admin", subject.getPrincipals().iterator().next().getName());

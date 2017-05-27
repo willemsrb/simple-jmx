@@ -50,7 +50,7 @@ public class Agent {
      */
     public static void agentmain(final String agentArgs) throws IOException {
         LOGGER.log(Level.FINE, "Configuring Simple-JMX server connector");
-        Map<String,String> arguments = ArgumentSplitter.split(agentArgs);
+        final Map<String, String> arguments = ArgumentSplitter.split(agentArgs);
 
         // Connection
         final String host = arguments.getOrDefault(ARGUMENT_HOST, "0.0.0.0");
@@ -63,7 +63,7 @@ public class Agent {
         // Environment - authentication
         if (arguments.containsKey(ARGUMENT_LOGIN_CONFIG)) {
             environment.put(Environment.KEY_AUTHENTICATOR, new ExternalAuthenticator(arguments.get(ARGUMENT_LOGIN_CONFIG)));
-        } else if(arguments.containsKey(ARGUMENT_PASSWORD_FILE)) {
+        } else if (arguments.containsKey(ARGUMENT_PASSWORD_FILE)) {
             environment.put(Environment.KEY_AUTHENTICATOR, new PropertiesAuthenticator(new PropertiesFileLoader(arguments.get(ARGUMENT_PASSWORD_FILE))));
         }
 
@@ -86,7 +86,7 @@ public class Agent {
                 LOGGER.log(Level.FINE, "Simple-JMX server connector stopping");
                 server.stop();
                 LOGGER.log(Level.FINE, "Simple-JMX server connector stopped");
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 LOGGER.log(Level.FINE, "Exception occurred during shutdown of Simple-JMX server.", e);
             }
         }, "simple-jmx-shutdown"));

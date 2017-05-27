@@ -9,7 +9,7 @@ public class DefaultAccessControllerTest {
         new DefaultAccessController().checkAccess(null, "getAttribute", null);
     }
 
-    @Test(expected=SecurityException.class)
+    @Test(expected = SecurityException.class)
     public void testNoAccess() {
         new DefaultAccessController().checkAccess(null, "invoke", null);
     }

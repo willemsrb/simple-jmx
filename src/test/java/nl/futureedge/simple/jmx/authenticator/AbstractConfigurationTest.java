@@ -8,7 +8,7 @@ public class AbstractConfigurationTest {
 
     @Test
     public void testNoConfiguration() {
-        StaticConfiguration configuration = new StaticConfiguration("name");
+        final StaticConfiguration configuration = new StaticConfiguration("name");
 
         Assert.assertNotNull(configuration.getAppConfigurationEntry("name"));
         Assert.assertNull(configuration.getAppConfigurationEntry("othername"));

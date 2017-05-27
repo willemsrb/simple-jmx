@@ -25,7 +25,7 @@ public final class PropertiesLoginModule extends AbstractLoginModule {
 
     @Override
     protected List<Principal> login(final Subject subject, final CallbackHandler callbackHandler,
-                          final Map<String, ?> sharedState, final Map<String, ?> options) throws LoginException {
+                                    final Map<String, ?> sharedState, final Map<String, ?> options) throws LoginException {
         // Retrieve username and password
         if (callbackHandler == null) {
             throw new LoginException("Could not retrieve credentials: no callback handler");

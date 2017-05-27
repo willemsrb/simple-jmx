@@ -16,13 +16,13 @@ public class JMXCallbackHandlerTest {
 
     @Test(expected = LoginException.class)
     public void invalidCredentialsLength() throws LoginException {
-        new JMXCallbackHandler(new String[] { "username"});
+        new JMXCallbackHandler(new String[]{"username"});
     }
 
     @Test(expected = UnsupportedCallbackException.class)
     public void testUnsupportedCallbackException() throws LoginException, UnsupportedCallbackException {
-        JMXCallbackHandler handler = new JMXCallbackHandler(new String[] { "username", "password"});
-        Callback callback = new LanguageCallback();
-        handler.handle(new Callback[] { callback });
+        final JMXCallbackHandler handler = new JMXCallbackHandler(new String[]{"username", "password"});
+        final Callback callback = new LanguageCallback();
+        handler.handle(new Callback[]{callback});
     }
 }

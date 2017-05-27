@@ -1,7 +1,7 @@
 package nl.futureedge.simple.jmx.socket;
 
 
-        import java.io.IOException;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -30,7 +30,7 @@ public final class SystemSslSocketFactory implements JMXSocketFactory {
     public SystemSslSocketFactory() throws SslConfigurationException {
         try {
             sslContext = SSLContext.getDefault();
-        } catch (NoSuchAlgorithmException e) {
+        } catch (final NoSuchAlgorithmException e) {
             throw new SslConfigurationException("No SSL Context found", e);
         }
 
@@ -48,6 +48,7 @@ public final class SystemSslSocketFactory implements JMXSocketFactory {
      * @return client socket
      * @throws IOException if an I/O error occurs when creating the socket
      */
+    @Override
     public Socket createSocket(final JMXServiceURL serviceUrl) throws IOException {
         final SSLSocket baseSslSocket = (SSLSocket) sslContext.getSocketFactory().createSocket(serviceUrl.getHost(),
                 serviceUrl.getPort());
@@ -63,6 +64,7 @@ public final class SystemSslSocketFactory implements JMXSocketFactory {
      * @return server socket
      * @throws IOException if an I/O error occurs when creating the socket
      */
+    @Override
     public ServerSocket createServerSocket(final JMXServiceURL serviceUrl) throws IOException {
         final InetAddress host = InetAddress.getByName(serviceUrl.getHost());
         final SSLServerSocket baseSslServerSocket = (SSLServerSocket) sslContext.getServerSocketFactory()

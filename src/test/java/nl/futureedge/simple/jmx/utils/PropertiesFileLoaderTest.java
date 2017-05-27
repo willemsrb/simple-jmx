@@ -18,12 +18,12 @@ public class PropertiesFileLoaderTest {
             directory.deleteOnExit();
 
             final File propertiesFile = new File(directory, "test.properties");
-            String propertiesLocation = propertiesFile.getCanonicalPath();
+            final String propertiesLocation = propertiesFile.getCanonicalPath();
 
             try {
                 new PropertiesFileLoader(propertiesLocation).loadProperties();
                 Assert.fail("Should throw IOException");
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 // Expected
             }
 

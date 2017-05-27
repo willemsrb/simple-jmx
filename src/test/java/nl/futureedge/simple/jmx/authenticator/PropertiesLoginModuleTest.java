@@ -9,10 +9,10 @@ import org.junit.Test;
 
 public class PropertiesLoginModuleTest {
 
-    private PropertiesLoginModule loginModule = new PropertiesLoginModule();
-    private Subject subject = new Subject();
-    private Map<String, Object> sharedState = new HashMap<>();
-    private Map<String, Object> options = new HashMap<>();
+    private final PropertiesLoginModule loginModule = new PropertiesLoginModule();
+    private final Subject subject = new Subject();
+    private final Map<String, Object> sharedState = new HashMap<>();
+    private final Map<String, Object> options = new HashMap<>();
 
     @Test(expected = LoginException.class)
     public void testNoCallbackHandler() throws LoginException {

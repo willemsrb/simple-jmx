@@ -38,7 +38,7 @@ final class ClientListener implements Runnable {
      * Create a new client listener.
      * @param input input stream
      */
-    ClientListener(final MessageInputStream input, int requestTimeout) {
+    ClientListener(final MessageInputStream input, final int requestTimeout) {
         this.input = input;
         this.requestTimeout = requestTimeout;
     }
@@ -186,7 +186,7 @@ final class ClientListener implements Runnable {
         private Response response;
 
         FutureResponse(final int requestTimeout) {
-            this.requestTimeout=requestTimeout;
+            this.requestTimeout = requestTimeout;
         }
 
         /**

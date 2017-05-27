@@ -42,7 +42,8 @@ final class ClientConnection {
      * @param connector client connector (to send notifications)
      * @param serviceUrl jmx service url
      */
-    ClientConnection(final ClientConnector connector, JMXSocketFactory socketFactory, final JMXServiceURL serviceUrl, Object credentials, int requestTimeout) {
+    ClientConnection(final ClientConnector connector, final JMXSocketFactory socketFactory, final JMXServiceURL serviceUrl, final Object credentials,
+                     final int requestTimeout) {
         this.connector = connector;
         this.socketFactory = socketFactory;
         this.serviceUrl = serviceUrl;

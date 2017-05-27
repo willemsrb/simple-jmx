@@ -22,7 +22,7 @@ final class JMXCallbackHandler implements CallbackHandler {
      * The first entry contains the username, the second entry contains the password.
      */
     JMXCallbackHandler(final Object credentials) throws LoginException {
-        if(credentials == null) {
+        if (credentials == null) {
             username = null;
             password = null;
         } else {

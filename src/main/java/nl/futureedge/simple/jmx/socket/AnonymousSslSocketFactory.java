@@ -83,7 +83,7 @@ public final class AnonymousSslSocketFactory implements JMXSocketFactory {
 
         if (!valueAdded) {
             throw new SslConfigurationException("None of the specified values could be added.\n   Wanted: " + Arrays.asList(wantedValues)
-            +"\n   Supported: "  + supported);
+                    + "\n   Supported: " + supported);
         }
         return result.toArray(new String[result.size()]);
     }
@@ -94,6 +94,7 @@ public final class AnonymousSslSocketFactory implements JMXSocketFactory {
      * @return client socket
      * @throws IOException if an I/O error occurs when creating the socket
      */
+    @Override
     public Socket createSocket(final JMXServiceURL serviceUrl) throws IOException {
         final SSLSocket baseSslSocket = (SSLSocket) sslContext.getSocketFactory().createSocket(serviceUrl.getHost(),
                 serviceUrl.getPort());
@@ -111,6 +112,7 @@ public final class AnonymousSslSocketFactory implements JMXSocketFactory {
      * @return server socket
      * @throws IOException if an I/O error occurs when creating the socket
      */
+    @Override
     public ServerSocket createServerSocket(final JMXServiceURL serviceUrl) throws IOException {
         final InetAddress host = InetAddress.getByName(serviceUrl.getHost());
         final SSLServerSocket baseSslServerSocket = (SSLServerSocket) sslContext.getServerSocketFactory()
