@@ -83,8 +83,8 @@ public final class Environment {
             // Custom timeout
             return Integer.parseInt((String) timeout);
         } else if (timeout == null) {
-            // Default: 3 seconds
-            return 3;
+            // Default: 15 seconds
+            return 15;
         } else {
             // Invalid object
             throw new IllegalArgumentException("Environment key " + KEY_REQUESTTIMEOUT + " should contain a Number (or a String)");
