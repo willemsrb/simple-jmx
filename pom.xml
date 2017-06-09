@@ -5,7 +5,7 @@
     <groupId>nl.future-edge</groupId>
     <artifactId>simple-jmx</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <name>Simple JMX</name>
     <description>Simple JMX protocol (that works without RMI)</description>
@@ -32,7 +32,7 @@
     <scm>
         <url>https://github.com/willemsrb/simple-jmx</url>
         <connection>scm:git:https://github.com/willemsrb/simple-jmx.git</connection>
-        <tag>simple-jmx-1.0.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <developers>
