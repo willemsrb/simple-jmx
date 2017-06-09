@@ -1,6 +1,7 @@
 package nl.futureedge.simple.jmx.it;
 
 import java.io.IOException;
+import java.io.NotSerializableException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +21,7 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXServiceURL;
 import nl.futureedge.simple.jmx.exception.InvalidCredentialsException;
+import nl.futureedge.simple.jmx.stream.MessageException;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Test;
@@ -76,6 +78,24 @@ public class SimpleJmxIT {
                 Assert.assertEquals(Integer.valueOf(26), serverConnection.getAttribute(mbeanName, "WritableAttribuut"));
 
                 Assert.assertEquals("All ok", serverConnection.invoke(mbeanName, "methodWithReturn", null, null));
+
+                try {
+                    serverConnection.getAttribute(mbeanName, "SerializationProblem");
+                    Assert.fail("Should fail on a NotSerializableException");
+                } catch(MessageException e) {
+                    // Expected
+                    Assert.assertEquals(NotSerializableException.class, e.getCause().getClass());
+                }
+                try {
+                    serverConnection.getAttribute(mbeanName, "SerializationWriteObjectProblem");
+                    Assert.fail("Should fail on a NotSerializableException");
+                } catch(MessageException e) {
+                    // Expected
+                    Assert.assertEquals(NotSerializableException.class, e.getCause().getClass());
+                }
+
+
+
             }
             LOGGER.log(Level.INFO, "Shutdown...");
         }

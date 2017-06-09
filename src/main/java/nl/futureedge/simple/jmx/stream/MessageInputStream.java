@@ -39,7 +39,12 @@ public final class MessageInputStream {
             LOGGER.log(Level.FINE, "Reading length (waiting for message) ...");
             final int length = StreamUtils.deserializeLength(readData(4));
             LOGGER.log(Level.FINE, "Reading data (length {0,number,######}) ...", length);
-            final Message message = StreamUtils.deserializeMessage(readData(length));
+            final Message message;
+            try {
+                message = StreamUtils.deserializeMessage(readData(length));
+            } catch (IOException e) {
+                throw new MessageException(e);
+            }
             LOGGER.log(Level.FINE, "Message received");
             return message;
         }

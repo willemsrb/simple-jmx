@@ -30,6 +30,7 @@ import nl.futureedge.simple.jmx.message.RequestExecute;
 import nl.futureedge.simple.jmx.message.RequestLogoff;
 import nl.futureedge.simple.jmx.message.RequestLogon;
 import nl.futureedge.simple.jmx.message.Response;
+import nl.futureedge.simple.jmx.stream.MessageException;
 import nl.futureedge.simple.jmx.stream.MessageInputStream;
 import nl.futureedge.simple.jmx.stream.MessageOutputStream;
 import nl.futureedge.simple.jmx.utils.IOUtils;
@@ -89,7 +90,7 @@ final class ServerConnection implements Runnable {
                     final Response response = handleRequest((Request) message);
 
                     // Send response
-                    output.write(response);
+                    sendResponse((Request) message, response);
                 } else {
                     LOGGER.log(Level.WARNING, "Received unknown message type: {0}", message.getClass().getName());
                 }
@@ -116,6 +117,15 @@ final class ServerConnection implements Runnable {
         // Shutdown
         IOUtils.closeSilently(socket);
         LOGGER.log(Level.FINE, "Server connection closed.");
+    }
+
+    private void sendResponse(final Request message, final Response response) throws IOException {
+        try {
+            output.write(response);
+        } catch(final MessageException e) {
+            final Response messageExceptionResponse = new Response(message.getRequestId(), e);
+            output.write(messageExceptionResponse);
+        }
     }
 
     boolean isStopped() {

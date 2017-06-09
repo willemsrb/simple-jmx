@@ -38,8 +38,14 @@ public final class MessageOutputStream {
      */
     public void write(final Message message) throws IOException {
         LOGGER.log(Level.FINE, "Writing message");
-        final byte[] data = StreamUtils.serializeMessage(message);
-        final byte[] length = StreamUtils.serializeLength(data.length);
+        final byte[] data;
+        final byte[] length;
+        try {
+            data = StreamUtils.serializeMessage(message);
+            length = StreamUtils.serializeLength(data.length);
+        } catch(IOException e) {
+            throw new MessageException(e);
+        }
 
         synchronized (output) {
             LOGGER.log(Level.FINE, "Sending data (length {0,number,######}) ...", data.length);
