@@ -31,6 +31,7 @@ public final class Environment {
 
     public static final String KEY_CREDENTIALS = JMXConnector.CREDENTIALS;
 
+    public static final String KEY_THREADPRIORITY = "jmx.remote.threadpriority";
 
     public static JMXSocketFactory determineSocketFactory(final Map<String, ?> environment) throws IOException {
         // Custom socket factory via the environment
@@ -88,6 +89,23 @@ public final class Environment {
         } else {
             // Invalid object
             throw new IllegalArgumentException("Environment key " + KEY_REQUESTTIMEOUT + " should contain a Number (or a String)");
+        }
+    }
+
+    public static int determineThreadPriority(final Map<String, ?> environment) {
+        final Object timeout = environment.get(KEY_THREADPRIORITY);
+        if (timeout instanceof Number) {
+            // Custom timeout
+            return ((Number) timeout).intValue();
+        } else if (timeout instanceof String) {
+            // Custom timeout
+            return Integer.parseInt((String) timeout);
+        } else if (timeout == null) {
+            // Default
+            return Thread.NORM_PRIORITY;
+        } else {
+            // Invalid object
+            throw new IllegalArgumentException("Environment key " + KEY_THREADPRIORITY + " should contain a Number (or a String)");
         }
     }
 }

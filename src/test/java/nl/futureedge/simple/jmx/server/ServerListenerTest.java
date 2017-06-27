@@ -38,7 +38,7 @@ public class ServerListenerTest {
     public void setup() throws IOException {
         mBeanServer = Mockito.mock(MBeanServer.class);
         serverConnector = new ServerConnector(new JMXServiceURL("simple", "localhost", 0), null, mBeanServer);
-        subject = new ServerListener(serverConnector, new AnonymousSslSocketFactory(), null, null);
+        subject = new ServerListener(serverConnector, new AnonymousSslSocketFactory(), null, null, Thread.NORM_PRIORITY);
     }
 
     private void start() {

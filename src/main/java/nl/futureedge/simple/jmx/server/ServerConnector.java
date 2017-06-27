@@ -71,8 +71,10 @@ final class ServerConnector extends JMXConnectorServer {
         final JMXSocketFactory socketFactory = Environment.determineSocketFactory(environment);
         final JMXAuthenticator authenticator = Environment.determineAuthenticator(environment);
         final JMXAccessController accessController = Environment.determineAccessController(environment);
-        serverListener = new ServerListener(this, socketFactory, authenticator, accessController);
+        final int threadPriority = Environment.determineThreadPriority(environment);
+        serverListener = new ServerListener(this, socketFactory, authenticator, accessController, threadPriority);
         serverListenerThread = new Thread(serverListener, "simple-jmx-server-" + serverListener.getServerId());
+        serverListenerThread.setPriority(threadPriority);
         serverListenerThread.start();
     }
 

@@ -37,18 +37,21 @@ final class ServerListener implements Runnable {
     /**
      * Create a new server listener.
      * @param serverConnector connector
+     * @param socketFactory socket factory
      * @param authenticator authenticator
+     * @param accessController access controller
+     * @param threadPriority  thread priority
      * @throws IOException if an I/O error occurs when constructing the server listener
      */
     ServerListener(final ServerConnector serverConnector, final JMXSocketFactory socketFactory, final JMXAuthenticator authenticator,
-                   final JMXAccessController accessController) throws IOException {
+                   final JMXAccessController accessController, final int threadPriority) throws IOException {
         this.serverConnector = serverConnector;
         this.authenticator = authenticator;
         this.accessController = accessController;
         serverId = SERVER_ID.getAndIncrement();
 
         // Setup executor service
-        final ThreadFactory threadFactory = new ConnectionThreadFactory(serverId);
+        final ThreadFactory threadFactory = new ConnectionThreadFactory(serverId, threadPriority);
         executorService = Executors.newCachedThreadPool(threadFactory);
 
         // Setup server socket
@@ -104,25 +107,25 @@ final class ServerListener implements Runnable {
     private static final class ConnectionThreadFactory implements ThreadFactory {
         private final ThreadGroup group;
         private final AtomicInteger threadNumber = new AtomicInteger(1);
+        private final int threadPriority;
         private final String namePrefix;
 
         /**
          * Constructor.
          * @param serverId server id
          */
-        ConnectionThreadFactory(final int serverId) {
+        ConnectionThreadFactory(final int serverId, final int threadPriority) {
             final SecurityManager s = System.getSecurityManager();
             group = s != null ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
             namePrefix = "simple-jmx-server-" + serverId + "-thread-";
+            this.threadPriority = threadPriority;
         }
 
         @Override
         public Thread newThread(final Runnable r) {
             final Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement());
-            // Never create deamon threads
             t.setDaemon(false);
-            // Create lower than normal priority threads
-            t.setPriority((Thread.NORM_PRIORITY + Thread.MIN_PRIORITY) / 2);
+            t.setPriority(threadPriority);
 
             return t;
         }
