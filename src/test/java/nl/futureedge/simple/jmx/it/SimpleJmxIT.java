@@ -82,18 +82,17 @@ public class SimpleJmxIT {
                 try {
                     serverConnection.getAttribute(mbeanName, "SerializationProblem");
                     Assert.fail("Should fail on a NotSerializableException");
-                } catch(MessageException e) {
+                } catch (MessageException e) {
                     // Expected
                     Assert.assertEquals(NotSerializableException.class, e.getCause().getClass());
                 }
                 try {
                     serverConnection.getAttribute(mbeanName, "SerializationWriteObjectProblem");
                     Assert.fail("Should fail on a NotSerializableException");
-                } catch(MessageException e) {
+                } catch (MessageException e) {
                     // Expected
                     Assert.assertEquals(NotSerializableException.class, e.getCause().getClass());
                 }
-
 
 
             }
@@ -102,6 +101,42 @@ public class SimpleJmxIT {
 
         LOGGER.log(Level.INFO, "Done...");
     }
+
+    @Test
+    public void testBigData() throws Exception {
+        LOGGER.log(Level.INFO, "Startup ...");
+        try (final ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+                new String[]{"classpath:it-context.xml"})) {
+            context.registerShutdownHook();
+
+            final JMXConnectorServer testServerConnector = context.getBean("testServerConnector",
+                    JMXConnectorServer.class);
+            final int testServerConnectorPort = testServerConnector.getAddress().getPort();
+
+            // Setup client
+            final Map<String, Object> environment = new HashMap<>();
+            environment.put(JMXConnector.CREDENTIALS, new String[]{"admin", "admin"});
+
+            LOGGER.log(Level.INFO, "Connect ...");
+            try (final JMXConnector jmxc = JMXConnectorFactory.connect(
+                    new JMXServiceURL("service:jmx:simple://localhost:" + testServerConnectorPort), environment)) {
+                LOGGER.log(Level.INFO, "Connected ...");
+                final MBeanServerConnection serverConnection = jmxc.getMBeanServerConnection();
+
+                final ObjectName mbeanName = new ObjectName("nl.futureedge.simple.jmx.test:name=TEST");
+                Assert.assertNotNull(serverConnection.getAttribute(mbeanName, "BigAttribuut1k"));
+                Assert.assertNotNull(serverConnection.getAttribute(mbeanName, "BigAttribuut16k"));
+                Assert.assertNotNull(serverConnection.getAttribute(mbeanName, "BigAttribuut256k"));
+
+                Assert.assertEquals("All ok", serverConnection.invoke(mbeanName, "methodWithReturn", null, null));
+
+            }
+            LOGGER.log(Level.INFO, "Shutdown...");
+        }
+
+        LOGGER.log(Level.INFO, "Done...");
+    }
+
 
     @Test
     public void testNotification() throws Exception {

@@ -58,7 +58,8 @@ public final class MessageInputStream {
             if (read == -1) {
                 throw new EOFException();
             }
-            totalRead = +read;
+            totalRead += read;
+            LOGGER.log(Level.FINE, "Read {0} bytes (total bytes read {1}) of {2} bytes expected", new Object[]{read, totalRead, length});
         }
         return data;
     }

@@ -35,6 +35,29 @@ public class JmxObject {
         writableAttribuut = value;
     }
 
+    @ManagedAttribute(description = "Big attribute (1k)")
+    public String getBigAttribuut1k() {
+        return times16("1234567890123456789012345678901234567890123456789012345678901234");
+    }
+
+    @ManagedAttribute(description = "Big attribute (16k)")
+    public String getBigAttribuut16k() {
+        return times16(getBigAttribuut1k());
+    }
+
+    @ManagedAttribute(description = "Big attribute (256k)")
+    public String getBigAttribuut256k() {
+        return times16(getBigAttribuut16k());
+    }
+
+    private String times16(final String value) {
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 16; i++) {
+            sb.append(value);
+        }
+        return sb.toString();
+    }
+
     @ManagedAttribute(description = "Attribute to test serialization problems")
     public Object getSerializationProblem() {
         return new Object();
