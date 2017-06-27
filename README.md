@@ -11,7 +11,7 @@ Simple JMX implements the JMX server and client provider interfaces and implemen
 ## Configuration
 JMX can be fully configured and extended using the environment supplied to the (server) connector.
 
-### Authentication
+### Authentication (server-side only)
 Authentication is done through a JAAS login module. Simple JMX supports three authentication schemes out of the box:
 - Static authentication (all credentials are accepted) ****default***\* 
 - Properties based authentication (credentials are stored as username=password)
@@ -26,7 +26,7 @@ Any authentication on the server must be configured using the `jmx.remote.authen
 
 A client should supply credentials via the `jmx.remote.credentials` key in the environment. The credentials (for the default implementations) should be configured as a `String[]` with two elements; the first being the username and the second the password.
 
-### Authorization
+### Authorization (server-side only)
 Authorization is done using the authenticated subject. Simple JMX supports three authentication schemes out of the box:
 - Default authentication (gives access to all readonly and notification operations) ****default***\*
 - All access authentication (unlimited access)
@@ -39,7 +39,7 @@ Any authorization on the server must be configured using the `jmx.remote.accessc
 - The properties based implementation (`nl.futureedge.simple.jmx.access.PropertiesAccessController`) must be configured by passing a `java.util.Properties` to the constructor or a `java.lang.String` that identifies the location of the properties file on the file system.  The property keys identify the principal name that should be used to check the authentication. The property values identify the access granted to that principal. Access is configured using the `readonly` or `readwrite` keywords. `readwrite` access can be further extended by using the `create my.package.*` or `unregister` keywords.
 - Applications can also implement the `nl.futureedge.simple.jmx.access.JMXAccessController` interface instead of using the supplied implementations to fully customize their access control.
 
-### Connections
+### Connections (client-side and server-side)
 Connections are made via standaard Java sockets. Simple JMX provides two connection provider out of the box:
 - Anonymous SSL (allows operation without certificates) ****default***\*
 - System SSL (uses the default Java SSL provider)
@@ -49,6 +49,10 @@ Any connection configuration (on the client or the server) must be configured us
 - The anonymous SSL implementation (`nl.futureedge.simple.jmx.socket.AnonymousSslSocketFactory`) does not have any specific configuration.
 - The system SSL implementation (`nl.futureedge.simple.jmx.socket.SystemSslSocketFactory`) uses the system default SSLContext and should be configured using the [system configuration](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html).
 - Applications can also implement the `nl.futureedge.simple.jmx.socket.JMXSocketFactory` interface to fully customize their connections.
+
+When a client issues a request via the JMX connection a timeout is used to determine a timely response (default is 15 seconds). Configure the timeout using the `jmx.remote.requesttimeout` key in the environment.
+
+Threads created by the server components are given 'normal' priority by default. Configure the priority using the `jmx.remote.threadpriority` key in the environment.
 
 ## Examples
 Simple JMX can be started via any means that can start and configure (set an environment) a standaard JMX (Server) Connector. See the following examples:
