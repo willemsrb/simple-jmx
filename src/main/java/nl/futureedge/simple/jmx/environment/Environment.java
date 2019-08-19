@@ -10,6 +10,7 @@ import nl.futureedge.simple.jmx.access.JMXAccessController;
 import nl.futureedge.simple.jmx.authenticator.StaticAuthenticator;
 import nl.futureedge.simple.jmx.socket.AnonymousSslSocketFactory;
 import nl.futureedge.simple.jmx.socket.JMXSocketFactory;
+import nl.futureedge.simple.jmx.socket.PlainSocketFactory;
 import nl.futureedge.simple.jmx.socket.SslConfigurationException;
 
 /**
@@ -33,6 +34,8 @@ public final class Environment {
 
     public static final String KEY_THREADPRIORITY = "jmx.remote.threadpriority";
 
+    public static final String KEY_ANONYMOUS_CIPHERS = "jmx.remote.anonymousciphers";
+
     public static JMXSocketFactory determineSocketFactory(final Map<String, ?> environment) throws IOException {
         // Custom socket factory via the environment
         final JMXSocketFactory custom = (JMXSocketFactory) environment.get(KEY_SOCKETFACTORY);
@@ -41,10 +44,14 @@ public final class Environment {
         }
 
         // Default: no authentication
-        try {
-            return new AnonymousSslSocketFactory();
-        } catch (final SslConfigurationException e) {
-            throw new IOException("Could not create default socket factory", e);
+        if (environment.containsKey(KEY_ANONYMOUS_CIPHERS)) {
+            try {
+                return new AnonymousSslSocketFactory();
+            } catch (final SslConfigurationException e) {
+                throw new IOException("Could not create default socket factory", e);
+            }
+        } else {
+            return new PlainSocketFactory();
         }
     }
 
