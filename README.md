@@ -40,12 +40,14 @@ Any authorization on the server must be configured using the `jmx.remote.accessc
 - Applications can also implement the `nl.futureedge.simple.jmx.access.JMXAccessController` interface instead of using the supplied implementations to fully customize their access control.
 
 ### Connections (client-side and server-side)
-Connections are made via standaard Java sockets. Simple JMX provides two connection provider out of the box:
-- Anonymous SSL (allows operation without certificates) ****default***\*
+Connections are made via standaard Java sockets. Simple JMX provides three connection provider out of the box:
+- Plain sockets (provides no security) ****default***\*
+- Anonymous SSL (allows operation without certificates, but note that these cipher suites are often not enabled)
 - System SSL (uses the default Java SSL provider)
 
 Any connection configuration (on the client or the server) must be configured using the `jmx.remote.socketfactory` key in the environment; the value should be an object instance that implements the `nl.futureedge.jmx.socket.JMXSocketFactory` interface:
 
+- Plain socket implementation (`nl.futureedge.simple.jmx.socket.PlainSocketFactory`) does not have any configuration.
 - The anonymous SSL implementation (`nl.futureedge.simple.jmx.socket.AnonymousSslSocketFactory`) does not have any specific configuration.
 - The system SSL implementation (`nl.futureedge.simple.jmx.socket.SystemSslSocketFactory`) uses the system default SSLContext and should be configured using the [system configuration](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html).
 - Applications can also implement the `nl.futureedge.simple.jmx.socket.JMXSocketFactory` interface to fully customize their connections.
